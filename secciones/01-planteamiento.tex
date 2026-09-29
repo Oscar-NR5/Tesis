@@ -17,7 +17,7 @@ depende de una convención y no de una restricción verificada por el sistema.
 El sistema nació hace tres años orientado principalmente a elementos operativos, con funciones 
 como la generación de resguardos de unidad y bitácoras de servicio. Con el tiempo escaló hacia el área
 administrativa de la organización, incorporando de forma progresiva nuevas funcionalidades hasta
-convertirse en el sistema operativo integral, sin que su arquitectura se revisara al mismo ritmo
+convertirse en el sistema principal de la organización, sin que su arquitectura se revisara al mismo ritmo
 que su alcance. Actualmente sostiene operaciones críticas de la organización, mientras que su
 proceso de despliegue continúa siendo completamente manual.
 
@@ -123,16 +123,16 @@ los cambios en entornos aislados de forma previa, expone la operación a fallas 
 el factor humano y compromete la confiabilidad técnica de cada integración.
 
 \subsection{Justificación}
-La automatizacion del ciclo de entrga de software no es unicamente una medida para incrementar la velocidad en
+La automatización del ciclo de entrega de software no es únicamente una medida para incrementar la velocidad en
 el desarrollo, sino un mecanismo que permite mitigar riesgos operativos. En el contexto de este proyecto, la
-ejecucion de despliegues manuales sobre una infraestructura \emph{on-premise} expone a la organizacion
-a posibles interrupciones del servicio derivadas de errores en la confguracion, como la falta de sincronizacion
-al aplicar migraciones o  la simple omision en la limpieza de caches. Al carecer de una suite de pruebas
-automaticas el rirsgo de integrar cambiso defectuosos a produccion es elevado.
+ejecución de despliegues manuales sobre una infraestructura \emph{on-premise} expone a la organización
+a posibles interrupciones del servicio derivadas de errores en la configuración, como la falta de sincronización
+al aplicar migraciones o la simple omisión en la limpieza de cachés. Al carecer de una suite de pruebas
+automáticas, el riesgo de integrar cambios defectuosos a producción es elevado.
 
 Resolver este problema genera un impacto operativo directo: al sustituir las intervenciones manuales por un 
-\emph{pipeline} declarativo y generar entornos de prueba bajo demanda, se crea una "compuerta de calidad" 
-(\emph{quality gate}) que aisla los fallos antes de que alcancen a los usuarios finales. Esto beneficia 
+\emph{pipeline} declarativo y generar entornos de prueba bajo demanda, se crea una ``compuerta de calidad''
+(\emph{quality gate}) que aísla los fallos antes de que alcancen a los usuarios finales. Esto beneficia
 directamente al equipo técnico, al reducir la dependencia de procedimientos manuales susceptibles 
 a errores de omisión o ejecución, y al favorecer la estandarización, reproducibilidad y trazabilidad 
 del proceso de liberación. Asimismo, beneficia a la institución, al disminuir el riesgo de interrupciones
@@ -141,24 +141,25 @@ administrativa.
 
 
 \subsection{Objetivo general}
-Diseñar y validar empiricamente una arquitectura de integracion y entrega continua (CI/CD) adptada a sistemas
-\emph{legacy}, mediante contenedorización y entorno de prueba bajo demanda, con el proposito de mitigar la vulnerabilidad
-operativa y erradicar las intervenciones manuales en la infraestructura de producción de un monolito operado 
+Diseñar y validar empíricamente una arquitectura de integración y entrega continua (CI/CD) adaptada a sistemas
+\emph{legacy}, mediante contenedorización y un entorno de prueba bajo demanda, con el propósito de mitigar la vulnerabilidad
+operativa y reducir las intervenciones manuales rutinarias en la infraestructura de producción de un monolito operado 
 sobre un esquema de base de datos dual y heterogéneo.
 
 \subsection{Objetivos específicos}
-Para alcanzar el objetivo general propuesto, se plantea estrcuturar en las sigueintes metas parciales:
+Para alcanzar el objetivo general propuesto, se plantea estructurar las siguientes metas parciales:
 \begin{itemize}
-  \item Aislar el entorno de ejecucion de la plaicacion mediante la adopcion de imagenes de contenedor inmutables, preservando
-  la logica del negocio del monolito sin recurrir en una reescritura de codigo orientada a microservicios.
-  \item Orquestar un mecanismo de aprovisionamineto declarativo de entorno de prueba efimeros bajo demanda, 
-  alimentados por volcados de datos sanitizados del esquema heterogeneo (MySQL y MongoDB) de produccion, para proveer un
-  entorno de validacion de alta fidelidad.
-  \item Construir un \emph{pipeline} de Integracion Continua (CI) sobre infraestructura autoalojada que aplique compuertas
-  de calidad (\emph{quality gates}) basadas en analisis estatico avanzado, resolviendo la carencia historica de una suite
-  de las caches del framework.
-  \item Evaluar comparativamente la resilencia operativa de la aquitectura propuesta frente a la linea base de despliegues
-  manuales, cuantificando la mejora a traves metricas estandarizadas (\emph{deployment frequency} y \emph{change failure rate}).
+  \item Aislar el entorno de ejecución de la aplicación mediante la adopción de imágenes de contenedor inmutables, preservando
+  la lógica del negocio del monolito sin recurrir a una reescritura de código orientada a microservicios.
+  \item Orquestar un mecanismo de aprovisionamiento declarativo de entornos de prueba efímeros bajo demanda,
+  alimentados por volcados de datos sanitizados del esquema heterogéneo (MySQL y MongoDB) de producción, para proveer un
+  entorno de validación de alta fidelidad.
+  \item Diseñar e implementar un \emph{pipeline} de Integración Continua (CI) sobre infraestructura autoalojada, 
+  que incorpore compuertas de calidad (\emph{quality gates}) basadas en análisis estático avanzado, para verificar
+  automáticamente cada cambio integrado al repositorio y detectar defectos, vulnerabilidades y \emph{code smells} 
+  antes de su despliegue, ante la ausencia histórica de una suite de pruebas automatizadas.
+  \item Evaluar comparativamente la resiliencia operativa de la arquitectura propuesta frente a la línea base de despliegues
+  manuales, cuantificando la mejora a través de métricas estandarizadas (\emph{deployment frequency} y \emph{change failure rate}).
 \end{itemize}
 
 \subsection{Hipótesis}
