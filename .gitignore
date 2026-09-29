@@ -1,0 +1,20 @@
+# Carpeta de compilación (todo lo que genera latexmk)
+build/
+
+# Artefactos de LaTeX sueltos, por si se compila a mano fuera de build/
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+
+# Respaldos y temporales del editor
+*.bak
+*~
+.DS_Store

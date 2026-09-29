@@ -1,0 +1,99 @@
+%!TEX encoding = UTF-8 Unicode
+%% Ojo: NO agregar "%!TEX TS-program". LaTeX Workshop lo obedece y se salta
+%% la receta de latexmk, compilando en una sola pasada y fuera de build/.
+%%
+%% ══════════════════════════════════════════════════════════════
+%%  PROTOCOLO DE INVESTIGACIÓN — archivo raíz (main.tex)
+%%
+%%  Compilar:  latexmk          (la salida queda en build/)
+%%  Limpiar:   latexmk -C
+%%
+%%  Contenido:
+%%    portada.tex     hoja de presentación
+%%    secciones/      un archivo por capítulo
+%%    misreferencias.bib   bibliografía
+%% ══════════════════════════════════════════════════════════════
+
+\documentclass[12pt,letterpaper]{article}
+
+%% ─────────────── Preámbulo: paquetes y configuración ───────────────
+
+% Idioma y codificación
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+% es-tabla: rotula las tablas como "Tabla" y no como "Cuadro".
+\usepackage[spanish,es-tabla,es-nodecimaldot]{babel}
+
+% Tipografía y márgenes
+\usepackage{mathptmx}              % Times New Roman (clon métrico Nimbus Roman)
+\usepackage[margin=24mm]{geometry}
+\frenchspacing
+\setlength{\parskip}{0.6em plus 0.1em minus 0.05em}
+
+% Utilidades usadas en el cuerpo
+\usepackage{titling}               % \thetitle, \theauthor en la portada
+\usepackage{graphicx}
+\usepackage{dingbat}               % \checkmark en las tablas del cronograma
+\usepackage{float}                 % figuras/tablas con [H]
+\usepackage{multicol}
+\usepackage{verbatim}
+\usepackage{dirtytalk}             % \say{...}
+\usepackage{xspace}
+
+% Bibliografía estilo IEEE (numérica)
+\usepackage[numbers]{natbib}
+
+% Las imágenes viven en Imagenes/; el './' final deja funcionar
+% también las rutas que ya incluyen el prefijo Imagenes/.
+\graphicspath{{Imagenes/}{./}}
+
+%% ── Datos del documento ──────────────────────────────────────
+%% Se usan en la portada y en los metadatos del PDF.
+\title{Integración y entrega continua para sistemas legado en producción: 
+contenedorización y entornos de prueba bajo demanda sobre infraestructura 
+autoalojada}
+\author{Oscar Alonso Nava Rivera}
+\date{\today}
+
+% hyperref debe cargarse al final del preámbulo.
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks = true,
+    linkcolor  = blue,
+    citecolor  = black,
+    filecolor  = magenta,
+    urlcolor   = cyan,
+    pdftitle   = {\thetitle},
+    pdfauthor  = {\theauthor},
+}
+\urlstyle{same}
+
+%% ───────────────────────── Documento ──────────────────────────
+
+\begin{document}
+
+\input{portada}
+
+\clearpage
+%\tableofcontents
+%\listoffigures
+%\listoftables
+
+% Para compilar rápido un solo capítulo, comenta temporalmente los otros.
+\input{secciones/01-planteamiento}
+\input{secciones/02-marco-teorico}
+\input{secciones/03-propuesta}
+
+\newpage
+\bibliographystyle{ieeetr}
+\bibliography{misreferencias}
+\nocite{*}
+
+\clearpage
+\appendix
+\section{Apéndice}
+[Material secundario o demasiado extenso para el cuerpo: código fuente completo,
+derivaciones, tablas de resultados completos, convenios, etc. Va después de la
+literatura citada y no lleva introducción ni conclusión.]
+
+\end{document}

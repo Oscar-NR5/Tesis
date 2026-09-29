@@ -1,0 +1,168 @@
+% !TEX root = ../main.tex
+\section*{Introducción}
+
+[Una cuartilla: 1) campo de investigación, 2) lo ya estudiado por otros,
+3) área de oportunidad, 4) objetivo del proyecto, 5) justificación.]
+
+\newpage
+
+\section{Planteamiento del problema}
+Una organización del sector público mantiene su sistema principal, el cual sostiene gran parte de la
+operación administrativa y operativa e integra las diferentes áreas de esta organización. La información
+se almacena en dos motores de base de datos, uno relacional y otro documental. El segundo, al no ser relacional,
+no implementa llaves foráneas como restricción del propio motor y, al tratarse de motores distintos, tampoco
+hay un mecanismo de integridad referencial que los conecte entre sí, por lo que la relación entre los datos
+depende de una convención y no de una restricción verificada por el sistema.
+
+El sistema nació hace tres años orientado principalmente a elementos operativos, con funciones 
+como la generación de resguardos de unidad y bitácoras de servicio. Con el tiempo escaló hacia el área
+administrativa de la organización, incorporando de forma progresiva nuevas funcionalidades hasta
+convertirse en el sistema operativo integral, sin que su arquitectura se revisara al mismo ritmo
+que su alcance. Actualmente sostiene operaciones críticas de la organización, mientras que su
+proceso de despliegue continúa siendo completamente manual.
+
+Para realizar un despliegue es necesario acceder mediante SSH al servidor donde se aloja la
+aplicación, actualizar el código mediante operaciones de Git sobre el repositorio, ejecutar
+manualmente las migraciones pendientes y limpiar cachés de configuración y rutas, sin mecanismos
+de verificación automática. El historial del repositorio refleja un volumen considerable de
+cambios: desde su inicio se han fusionado 563 solicitudes de cambio en la rama principal, sobre
+aproximadamente 8,000 commits. Estas integraciones pueden incluir cambios que deben aplicarse
+sobre los motores de base de datos: modificación de esquemas en el motor relacional y, en el
+motor no relacional, que no tiene esquema fijo, operaciones equivalentes como la creación de
+índices; en ambos casos deben identificarse y ejecutarse manualmente y en el orden correspondiente.
+
+El ritmo de integración de cambios a la rama principal no equivale a la frecuencia real de
+despliegue: con regularidad se agrupan varios cambios fusionados antes de llevarlos al servidor,
+aunque no siempre ocurre así ni existe un criterio fijo de cuántos se acumulan. Tampoco existe un
+registro sistemático del tiempo entre la fusión de un cambio a la rama principal y su despliegue
+real en producción; de forma informal se sabe que ese tiempo es corto, ya que no se deja código
+fusionado sin desplegar por periodos prolongados, pero no hay un dato preciso que lo respalde.
+Tampoco se conoce, con el mismo nivel de precisión, qué proporción de despliegues requiere una
+corrección posterior.
+
+El proceso manual presenta dos modos de falla asociados a la ejecución de pasos a mano. El
+primero, ya observado de forma recurrente, es olvidar limpiar las cachés de configuración y rutas
+al final de cada despliegue, lo que deja el sistema sirviendo una versión desactualizada hasta que
+se detecta el problema. El segundo, un riesgo identificado pero sin evidencia de haberse
+materializado, es específico de los despliegues que agrupan varios cambios: omitir alguna
+migración o seeder de los distintos cambios acumulados.
+
+\subsection{Antecedentes}
+El primer elemento a considerar al intervenir un proceso de entrega de software es establecer un mecanismo
+sistemático y validado para medir su desempeño antes y después de la automatización. Forsgren, Humble y Kim
+\cite{Forsgren2018} sintetizaron años de investigación empírica en miles de organizaciones y aislaron cuatro 
+métricas clave, conocidas en la literatura como métricas DORA: frecuencia de despliegue (\emph{deployment frequency}), 
+tiempo de entrega de los cambios (\emph{lead time for changes}), tiempo de restauración del servicio 
+(\emph{time to restore service}) y tasa de fallos por cambio (\emph{change failure rate}). El hallazgo
+central demuestra que las organizaciones de alto desempeño no sacrifican estabilidad por velocidad, sino
+que consiguen ambas de forma simultánea. Para este trabajo, estas métricas proporcionan un vocabulario y una
+definición operacional ya validados, ofreciendo un marco científico para cuantificar la mejora respecto a la línea base
+(\emph{baseline}) de los despliegues manuales.
+
+Sobre la adopción de Integración y Entrega Continua (CI/CD), existe un consenso sólido respecto a las principales barreras
+de implementación. Revisiones sistemáticas de literatura empírica desarrolladas por Lukkanen et al. \cite{Laukkanen2017} y
+Proulx et al. \cite{Proulx2018} coinciden en que los factores humanos y organizacionales superan holgadamente a los
+problemas técnicos en la generación de fallas durante la liberación de código. Estos hallazgos respaldan directamente
+el diagnóstico del sistema de estudio de este proyecto: la omisión de limpieza de cachés tras un despliegue
+manual constituye una falla observada de forma recurrente, mientras que la omisión de migraciones al agrupar
+múltiples \emph{commits} o cambios constituye un riesgo potencial identificado, sin evidencia de haberse
+materializado. Ambos problemas son consistentes con la influencia de factores humanos. La literatura señala
+que la automatización mediante un \emph{pipeline} establece un mecanismo restrictivo de construcción que puede
+reducir la posibilidad de errores humanos por omisión al hacer explícitos y verificables los pasos del despliegue.
+
+Al intentar aplicar estos principios a sistemas \emph{legacy}, la literatura técnica se inclina hacia una refactorización
+profunda o la descomposición en microservicios. Sin embargo, diferentes estudios recientes en la ingeniería
+de software empresarial advierten sobre los elevados riesgos y costos que puede ocasionar esta estrategia,
+especialmente en infraestructura restringida y autoalojada. La práctica documentada respalda la modernización
+incremental \cite{Kosinska2020}, un enfoque que prioriza la contenedorización de la aplicación tal como está,
+aislando sus dependencias de tiempo de ejecución (como el \emph{runtime} de la aplicación) sin reescribir la lógica
+del negocio. Este es un paso crítico en contextos institucionales que operan sobre infraestructura propia y carecen de
+orquestación en la nube pública.
+
+Un desafío arquitectónico particular del sistema en cuestión es su dependencia de un esquema de base de datos dual 
+y heterogéneo (un motor relacional y uno documental simultáneos), desprovisto de un mecanismo nativo de integridad 
+referencial. Estudios empíricos sobre entrega continua, como el de Shahin et al. \cite{Shahin2017}, identifican la 
+sincronización y la evolución de esquemas de bases de datos como uno de los cuellos de botella técnicos más severos
+al automatizar despliegues. Dado que no existe una gestión de transacciones distribuidas entre ambos motores, 
+cualquier estrategia de automatización debe tratar ambas bases como una unidad lógica unificada al ejecutar 
+migraciones o \emph{backfills} de datos. Esto impone una restricción de diseño severa para el \emph{pipeline} propuesto.
+
+Por otra parte, el obstáculo más significativo frente a la literatura tradicional de CI/CD es la 
+validación del código. La inmensa mayoría de los trabajos académicos asumen la preexistencia de una 
+suite de pruebas automatizadas como el \emph{quality gate} (compuerta de calidad) principal. 
+Cuando un sistema \emph{legacy} carece de pruebas unitarias o de integración, forzar la entrega continua 
+presenta un riesgo crítico. Para cerrar esta brecha en escenarios con datos altamente acoplados, 
+la industria sugiere la instanciación de entornos de prueba bajo demanda 
+(\emph{on-demand preview environments}), nutridos con \emph{dumps} sanitizados de producción. 
+Esto transfiere la responsabilidad de la validación del \emph{pipeline} a un entorno aislado donde 
+se puede realizar una comprobación funcional manual de alta fidelidad.
+
+El contexto operativo institucional del sector público con servidores propios (\emph{on-premise})
+añade una capa final de complejidad debido a restricciones presupuestales y la falta de registros de 
+contenedores (\emph{container registries}) preexistentes. Un precedente altamente relevante en este rubro 
+es el trabajo de Morales Agredo \cite{MoralesAgredo2021} en la Pontificia Universidad Javeriana Cali, quien 
+diseñó una propuesta de CI/CD orientada a aplicaciones \emph{legacy} universitarias. Su investigación 
+demuestra que la transición hacia flujos automatizados con plataformas autoalojadas (\emph{self-hosted}) 
+es viable e imperativa en organizaciones con infraestructura limitada, sin depender de proveedores externos.
+
+Cruzando los ejes anteriores emerge con claridad la brecha técnica y operativa que motiva este trabajo. 
+La literatura revisada documenta sólidamente cómo evaluar el desempeño, los riesgos del error humano, 
+la viabilidad de la contenedorización incremental y la necesidad de modernización en instituciones 
+públicas. Ninguno de estos trabajos, sin embargo, aborda de manera conjunta la automatización de la
+entrega de un sistema monolítico con un esquema de datos heterogéneo, operado sobre infraestructura
+\emph{on-premise} sin acceso a nube pública, y que deba garantizar la seguridad del despliegue en 
+ausencia total de una suite de pruebas automatizadas. Es precisamente en la resolución simultánea
+de estas restricciones operativas donde se inscribe la contribución de este proyecto.
+
+
+\subsection{Definición del problema}
+El problema central que aborda este trabajo radica en la inestabilidad y el riesgo técnico generados por la 
+gestión manual del ciclo de liberación de software en un entorno monolítico en producción. La ejecución directa 
+de rutinas de despliegue y configuración sobre la infraestructura en vivo, sumada a la imposibilidad de validar 
+los cambios en entornos aislados de forma previa, expone la operación a fallas recurrentes inducidas por 
+el factor humano y compromete la confiabilidad técnica de cada integración.
+
+\subsection{Justificación}
+La automatizacion del ciclo de entrga de software no es unicamente una medida para incrementar la velocidad en
+el desarrollo, sino un mecanismo que permite mitigar riesgos operativos. En el contexto de este proyecto, la
+ejecucion de despliegues manuales sobre una infraestructura \emph{on-premise} expone a la organizacion
+a posibles interrupciones del servicio derivadas de errores en la confguracion, como la falta de sincronizacion
+al aplicar migraciones o  la simple omision en la limpieza de caches. Al carecer de una suite de pruebas
+automaticas el rirsgo de integrar cambiso defectuosos a produccion es elevado.
+
+Resolver este problema genera un impacto operativo directo: al sustituir las intervenciones manuales por un 
+\emph{pipeline} declarativo y generar entornos de prueba bajo demanda, se crea una "compuerta de calidad" 
+(\emph{quality gate}) que aisla los fallos antes de que alcancen a los usuarios finales. Esto beneficia 
+directamente al equipo técnico, al reducir la dependencia de procedimientos manuales susceptibles 
+a errores de omisión o ejecución, y al favorecer la estandarización, reproducibilidad y trazabilidad 
+del proceso de liberación. Asimismo, beneficia a la institución, al disminuir el riesgo de interrupciones
+durante los despliegues y contribuir a la continuidad operativa de un sistema que sustenta su gestión 
+administrativa.
+
+
+\subsection{Objetivo general}
+Diseñar y validar empiricamente una arquitectura de integracion y entrega continua (CI/CD) adptada a sistemas
+\emph{legacy}, mediante contenedorización y entorno de prueba bajo demanda, con el proposito de mitigar la vulnerabilidad
+operativa y erradicar las intervenciones manuales en la infraestructura de producción de un monolito operado 
+sobre un esquema de base de datos dual y heterogéneo.
+
+\subsection{Objetivos específicos}
+Para alcanzar el objetivo general propuesto, se plantea estrcuturar en las sigueintes metas parciales:
+\begin{itemize}
+  \item Aislar el entorno de ejecucion de la plaicacion mediante la adopcion de imagenes de contenedor inmutables, preservando
+  la logica del negocio del monolito sin recurrir en una reescritura de codigo orientada a microservicios.
+  \item Orquestar un mecanismo de aprovisionamineto declarativo de entorno de prueba efimeros bajo demanda, 
+  alimentados por volcados de datos sanitizados del esquema heterogeneo (MySQL y MongoDB) de produccion, para proveer un
+  entorno de validacion de alta fidelidad.
+  \item Construir un \emph{pipeline} de Integracion Continua (CI) sobre infraestructura autoalojada que aplique compuertas
+  de calidad (\emph{quality gates}) basadas en analisis estatico avanzado, resolviendo la carencia historica de una suite
+  de las caches del framework.
+  \item Evaluar comparativamente la resilencia operativa de la aquitectura propuesta frente a la linea base de despliegues
+  manuales, cuantificando la mejora a traves metricas estandarizadas (\emph{deployment frequency} y \emph{change failure rate}).
+\end{itemize}
+
+\subsection{Hipótesis}
+[Opcional según el tipo de trabajo.]
+
+\subsection{Alcances y limitaciones}
+[Qué sí y qué no cubre el proyecto.]
