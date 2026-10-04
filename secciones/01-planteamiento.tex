@@ -7,8 +7,8 @@
 \newpage
 
 \section{Planteamiento del problema}
-Una organización del sector público mantiene su sistema principal, el cual sostiene gran parte de la
-operación administrativa y operativa, integrando las diferentes áreas de esta organización. La información
+Una organización mantiene un sistema que sostiene gran parte de su
+operación administrativa y operativa, integrando sus diferentes áreas. La información
 se almacena en dos motores de base de datos, uno relacional y otro documental. El segundo, al no ser relacional,
 no implementa llaves foráneas como restricción del propio motor y, al tratarse de motores distintos, tampoco
 hay un mecanismo de integridad referencial que los conecte entre sí, por lo que la relación entre los datos
@@ -77,7 +77,7 @@ de software empresarial advierten sobre los elevados riesgos y costos que puede 
 especialmente en infraestructura restringida y autoalojada. La práctica documentada respalda la modernización
 incremental \cite{Kosinska2020}, un enfoque que prioriza la contenedorización de la aplicación tal como está,
 aislando sus dependencias de tiempo de ejecución (como el \emph{runtime} de la aplicación) sin reescribir la lógica
-del negocio. Este es un paso crítico en contextos institucionales que operan sobre infraestructura propia y carecen de
+del negocio. Este es un paso crítico en contextos que operan sobre infraestructura propia y carecen de
 orquestación en la nube pública.
 
 Un desafío arquitectónico particular del sistema en cuestión es su dependencia de un esquema de base de datos dual 
@@ -97,8 +97,8 @@ se recomienda desplegar los cambios en entornos de prueba bajo demanda (\emph{on
 donde una persona puede validar el cambio de forma manual en condiciones parecidas a las de producción antes de integrarlo.
 % TODO(tesis): falta fuente para «se recomienda desplegar los cambios en entornos de prueba bajo demanda»
 
-El contexto operativo institucional del sector público con servidores propios (\emph{on-premise})
-añade una capa final de complejidad debido a restricciones presupuestales y la falta de registros de 
+Operar con servidores propios (\emph{on-premise})
+añade una capa final de complejidad debido a restricciones presupuestales y a la falta de registros de 
 contenedores (\emph{container registries}) preexistentes. Un precedente altamente relevante en este rubro 
 es el trabajo de Morales Agredo \cite{MoralesAgredo2021} en la Pontificia Universidad Javeriana Cali, quien 
 diseñó una propuesta de CI/CD orientada a aplicaciones \emph{legacy} universitarias. Su investigación 
@@ -107,8 +107,8 @@ es viable e imperativa en organizaciones con infraestructura limitada, sin depen
 
 Cruzando los ejes anteriores emerge con claridad la brecha técnica y operativa que motiva este trabajo. 
 La literatura revisada documenta sólidamente cómo evaluar el desempeño, los riesgos del error humano, 
-la viabilidad de la contenedorización incremental y la necesidad de modernización en instituciones 
-públicas. Ninguno de estos trabajos, sin embargo, aborda de manera conjunta la automatización de la
+la viabilidad de la contenedorización incremental y la modernización de sistemas \emph{legacy}
+con plataformas autoalojadas. Ninguno de estos trabajos, sin embargo, aborda de manera conjunta la automatización de la
 entrega de un sistema monolítico con un esquema de datos heterogéneo, operado sobre infraestructura
 \emph{on-premise} sin acceso a nube pública, y que deba garantizar la seguridad del despliegue en 
 ausencia total de una suite de pruebas automatizadas. Es precisamente en la resolución simultánea
@@ -145,7 +145,7 @@ detectarlos antes de llegar a producción. Tercero, deja registro de cada despli
 no existe y que permite evaluar el proceso con datos.
 
 Esto beneficia al equipo técnico, al reducir su dependencia de procedimientos manuales y favorecer un proceso estandarizado,
-repetible y con trazabilidad. También beneficia a la institución, al disminuir el riesgo de que un error afecte la operación
+repetible y con trazabilidad. También beneficia a la organización, al disminuir el riesgo de que un error afecte la operación
 de un sistema que sustenta su gestión administrativa. Además, el proyecto deja documentado un caso de entrega continua sobre 
 infraestructura autoalojada en un sistema sin pruebas automatizadas, que podría servir de referencia a equipos con condiciones similares.
 
