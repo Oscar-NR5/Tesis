@@ -143,17 +143,15 @@ los pasos manuales del despliegue y permita validar los cambios antes de su lleg
 y evaluarlo frente al proceso manual actual.
 
 \subsection{Objetivos específicos}
-Para alcanzar el objetivo general propuesto, se plantea estructurar las siguientes metas especificas:
+Para alcanzar el objetivo general propuesto, se plantea estructurar las siguientes metas específicas:
 \begin{itemize}
   \item Empaquetar la aplicación en imágenes de contenedor versionadas, sin modificar su lógica de negocio, 
   para que se ejecute de la misma forma en desarrollo, pruebas y producción.
-  \item Implementar un mecanismo que, a partir de una rama del repositorio, cree un entorno de prueba 
-  bajo demanda con la aplicación y sus dos bases de datos (MySQL y MongoDB), cargadas con datos de prueba generados mediante \emph{seeders}.
-  \item Configurar en GitLab, sobre infraestructura autoalojada, un \emph{pipeline} que en cada \emph{push} 
-  construya la imagen, ejecute el análisis estático del código como compuerta de calidad y despliegue el 
-  entorno de prueba.
-  \item Automatizar el despliegue a producción, incluyendo la ejecución ordenada de las migraciones de ambas bases de datos
-  y la limpieza de cachés, con una verificación final de que la aplicación responde.
+  \item Implementar el despliegue de prueba bajo demanda: que cualquier integrante del equipo pueda elegir desde GitLab una rama y una instancia de prueba, y desplegar ahí la aplicación con sus dos bases de datos (MySQL y MongoDB), con opciones para aplicar migraciones y cargar datos de prueba generados mediante \emph{seeders}.
+  \item Configurar en GitLab, sobre infraestructura autoalojada, un \emph{pipeline} que en cada cambio que se sube al repositorio construya la imagen y lo verifique mediante compuertas de calidad, ante la ausencia de una suite de pruebas automatizadas.
+  % TODO(tesis): definir cuáles son las compuertas de calidad del sistema heredado
+  \item Automatizar el despliegue a producción a partir de una rama de liberación (\emph{release}), con aprobación manual, ejecutando en orden las migraciones de ambas bases de datos y verificando al final que la aplicación responde.
+  % TODO(tesis): definir cómo se verifica que la aplicación responde y cómo se aplican los cambios de MongoDB en el despliegue
   \item Evaluar el proceso propuesto frente al proceso manual actual, comparando el número de pasos manuales,
    el tiempo de despliegue, el tiempo entre la fusión de un cambio y su despliegue, y la proporción de despliegues 
    que requieren una corrección posterior.
