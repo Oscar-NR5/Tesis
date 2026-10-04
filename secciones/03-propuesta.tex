@@ -1,37 +1,26 @@
 % !TEX root = ../main.tex
 \section{Producto propuesto}
-El producto de este proyecto es un proceso de integración y entrega continua para el sistema, diseñado para operar sobre 
-la infraestructura autoalojada de la organización. Todos sus elementos se describen en archivos versionados dentro del repositorio 
-(infraestructura como código), por lo que el proceso es repetible y queda registrado. Se compone de:
-
+El producto de este proyecto es un proceso de integración y entrega continua para el sistema, diseñado para operar sobre la infraestructura autoalojada de la organización. Todos sus elementos se describen en archivos versionados dentro del repositorio (infraestructura como código), por lo que el proceso es repetible y queda registrado. Se compone de:
 \begin{itemize}
-    \item Las imágenes de contenedor de la aplicación y su configuración.
-    \item Un \emph{pipeline} en GitLab que, en cada \emph{push}, construye la imagen, ejecuta el análisis estático del código y despliega un entorno de prueba.
-    \item El mecanismo para crear el entorno de prueba de una rama, con la aplicación y sus dos bases de datos cargadas con datos de prueba.
-    \item El despliegue automatizado a producción, que ejecuta en orden las migraciones de ambas bases de datos, limpia las cachés y verifica que la aplicación responda.
-    \item La documentación de uso y el informe de evaluación frente al proceso manual actual.
+  \item Las imágenes de contenedor de la aplicación y su configuración.
+  \item Un \emph{pipeline} en GitLab que, en cada cambio que se sube al repositorio, construye la imagen y ejecuta las compuertas de calidad.
+  \item El despliegue de prueba bajo demanda: desde GitLab se elige una rama y una instancia de prueba, y se despliega ahí la aplicación con sus dos bases de datos, con la opción de aplicar migraciones y cargar datos de prueba.
+  \item El despliegue a producción desde una rama de liberación, con aprobación manual, que ejecuta en orden las migraciones de ambas bases de datos y verifica que la aplicación responda.
+  \item La documentación de uso y el informe de evaluación frente al proceso manual actual.
 \end{itemize}
 
-El proceso funciona de la siguiente manera (Figura~\ref{fig:arquitectura_solucion}). Cuando un desarrollador
-sube una rama al repositorio, GitLab inicia un \emph{pipeline} que construye la imagen de contenedor de la aplicacion
-y ejecuta el análisis estático del código. Si el análisis se aprueba, el \emph{pipeline} despliega un entorno
- de prueba con esa rama. En ese entorno, el equipo realiza la validación funcional manual del cambio. Una vez validado, 
- se abre la solicitud de cambio, se revisa y se fusiona. Al fusionarse, el \emph{pipeline} despliega la aplicación 
- en producción [CONFIRMAR: de forma automática o tras una aprobación en GitLab].
+El proceso funciona de la siguiente manera (Figura~\ref{fig:arquitectura_solucion}). Cuando un desarrollador sube una rama, GitLab inicia un \emph{pipeline} de revisión que construye la imagen y ejecuta las compuertas de calidad. Si el desarrollador lo requiere, puede desplegar su rama en una instancia de prueba para que el cambio se valide de forma manual, de preferencia por quien lo usará. Cuando el cambio pasa las verificaciones y las aprobaciones del equipo, se fusiona a la rama principal. Para llevarlo a producción se crea una rama de liberación a partir de la principal; sobre ella se ejecuta el \emph{pipeline} de despliegue, que vuelve a correr las verificaciones y, tras una aprobación manual, despliega la aplicación en producción.
+% TODO(tesis): definir cuáles verificaciones se repiten en la rama de liberación y si hay un ambiente de desarrollo al fusionar a la rama principal
 
- \begin{itemize}
-    \item \textbf{Imágenes versionadas.} La misma imagen de contenedor se usa en desarrollo, pruebas y 
-    producción, lo que reduce las diferencias de configuración entre ambientes.
-    \item \textbf{Infraestructura autoalojada.} Todo el proceso opera en los servidores 
-    de la organización, sin depender de servicios de nube pública.
-    \item \textbf{Entorno de prueba bajo demanda.} Cada rama puede probarse en un entorno propio, con datos
-    de prueba generados mediante \emph{seeders} que respeetan las relaciones entre MySQL y MongoDB. La validacion
-    funcional sigue siendo manual: el entorno la hace posible y ordenada, pero no lo sustituye.
-    \item \textbf{Despliegue coordinado de las dos bases de datos.} Las migraciones de ambos motores se ejecutan 
-    en un orden definido y verificable. Como los mototres no comparten transacciones, el proceso asegura el orden
-    y la verificacion, no la atomicidad
-
- \end{itemize}
+Las características principales del proceso son:
+\begin{itemize}
+  \item \textbf{Imágenes versionadas.} Las imágenes de todos los ambientes se construyen a partir de la misma definición y de la misma imagen base, lo que reduce las diferencias de configuración entre ambientes.
+  \item \textbf{Infraestructura autoalojada.} GitLab, su registro de contenedores y los servidores donde se despliega operan en infraestructura de la organización.
+  % TODO(tesis): decidir si el pipeline usa servicios externos y cómo se describen
+  \item \textbf{Despliegue de prueba bajo demanda.} Una instancia de prueba es un servidor de la organización donde se despliega la aplicación para validar un cambio. Cualquier integrante puede desplegar una rama en una de ellas, con datos de prueba generados mediante \emph{seeders} que respetan las relaciones entre MySQL y MongoDB. Las instancias son persistentes y cada una aloja una rama a la vez. La validación funcional sigue siendo manual: la instancia la hace posible y ordenada, pero no la sustituye.
+  \item \textbf{Despliegue coordinado de las dos bases de datos.} Las migraciones de ambos motores se ejecutan en un orden definido y antes de exponer el código nuevo. Como los motores no comparten transacciones, el proceso asegura el orden y la verificación, no la atomicidad.
+  \item \textbf{Controles en producción.} El despliegue requiere la aprobación manual de un rol autorizado y no permite borrar la base de datos.
+\end{itemize}
 
 \begin{figure}[H]
 \centering
