@@ -9,8 +9,8 @@ El producto de este proyecto es un proceso de integración y entrega continua pa
   \item La documentación de uso y el informe de evaluación frente al proceso manual actual.
 \end{itemize}
 
-El proceso funciona de la siguiente manera (Figura~\ref{fig:arquitectura_solucion}). Cuando un desarrollador sube una rama, GitLab inicia un \emph{pipeline} de revisión que construye la imagen y ejecuta las compuertas de calidad. Si el desarrollador lo requiere, puede desplegar su rama en una instancia de prueba para que el cambio se valide de forma manual, de preferencia por quien lo usará. Cuando el cambio pasa las verificaciones y las aprobaciones del equipo, se fusiona a la rama principal. Para llevarlo a producción se crea una rama de liberación a partir de la principal; sobre ella se ejecuta el \emph{pipeline} de despliegue, que vuelve a correr las verificaciones y, tras una aprobación manual, despliega la aplicación en producción.
-% TODO(tesis): definir cuáles verificaciones se repiten en la rama de liberación y si hay un ambiente de desarrollo al fusionar a la rama principal
+El proceso funciona de la siguiente manera (Figura~\ref{fig:arquitectura_solucion}). Cuando un desarrollador sube una rama, GitLab inicia un \emph{pipeline} de revisión que construye la imagen y ejecuta las compuertas de calidad. Si el desarrollador lo requiere, puede desplegar su rama en una instancia de prueba para que el cambio se valide de forma manual, de preferencia por quien lo usará. Cuando el cambio pasa las verificaciones y las aprobaciones del equipo, se fusiona con la rama principal. Para llevarlo a producción se crea una rama de liberación a partir de la principal; sobre ella se ejecuta el \emph{pipeline} de despliegue, que vuelve a ejecutar las verificaciones y, tras una aprobación manual, despliega la aplicación en producción.
+% TODO(tesis): definir cuáles verificaciones se repiten en la rama de liberación y si hay un ambiente de desarrollo al fusionar con la rama principal
 
 Las características principales del proceso son:
 \begin{itemize}

@@ -28,7 +28,7 @@ aplicación, actualizar el código mediante operaciones de Git sobre el reposito
 manualmente las migraciones pendientes, sin mecanismos
 de verificación automática. El historial del repositorio refleja un volumen considerable de
 cambios: desde su inicio se han fusionado 563 solicitudes de cambio en la rama principal, sobre
-aproximadamente 8,000 commits. Estas integraciones pueden incluir cambios que deben aplicarse
+aproximadamente 8,000 \emph{commits}. Estas integraciones pueden incluir cambios que deben aplicarse
 sobre los motores de base de datos: modificación de esquemas en el motor relacional y, en el
 motor no relacional, que no tiene esquema fijo, operaciones equivalentes como la creación de
 índices; en ambos casos deben identificarse y ejecutarse manualmente y en el orden correspondiente.
@@ -36,8 +36,8 @@ motor no relacional, que no tiene esquema fijo, operaciones equivalentes como la
 El ritmo de integración de cambios a la rama principal no equivale a la frecuencia real de
 despliegue: con regularidad se agrupan varios cambios fusionados antes de llevarlos al servidor,
 aunque no siempre ocurre así ni existe un criterio fijo de cuántos se acumulan. En algunas semanas, incluso, 
-se despliega casi a diario. Tampoco existe un
-registro sistemático del tiempo entre la fusión de un cambio a la rama principal y su despliegue
+se despliega casi a diario. No existe un
+registro sistemático del tiempo entre la fusión de un cambio en la rama principal y su despliegue
 real en producción; de forma informal se sabe que ese tiempo es corto, ya que no se deja código
 fusionado sin desplegar por periodos prolongados, pero no hay un dato preciso que lo respalde.
 Tampoco se conoce, con el mismo nivel de precisión, qué proporción de despliegues requiere una
@@ -57,13 +57,13 @@ tiempo de entrega de los cambios (\emph{lead time for changes}), tiempo de resta
 (\emph{time to restore service}) y tasa de fallos por cambio (\emph{change failure rate}). El hallazgo
 central demuestra que las organizaciones de alto desempeño no sacrifican estabilidad por velocidad, sino
 que consiguen ambas de forma simultánea. Para este trabajo, estas métricas proporcionan un vocabulario y una
-definición operacional ya validados, ofreciendo un marco científico para cuantificar la mejora respecto a la línea base
+definición operacional ya validados, y ofrecen un marco científico para cuantificar la mejora respecto a la línea base
 (\emph{baseline}) de los despliegues manuales.
 
-Sobre la adopción de Integración y Entrega Continua (CI/CD), existe un consenso sólido respecto a las principales barreras
+Sobre la adopción de la integración y entrega continuas (CI/CD), existe un consenso sólido respecto a las principales barreras
 de implementación. Revisiones sistemáticas de literatura empírica desarrolladas por Laukkanen et al. \cite{Laukkanen2017} y
 Proulx et al. \cite{Proulx2018} coinciden en que los factores humanos y organizacionales superan holgadamente a los
-problemas técnicos en la generación de fallas durante la liberación de código. Estos hallazgos coinciden con lo que
+problemas técnicos en la generación de fallas durante la liberación de código. Estos hallazgos concuerdan con lo que
 se observa en el sistema de estudio, cuyo principal riesgo de despliegue (omitir una migración cuando se agrupan
 varios cambios) depende de que una persona ejecute cada paso a mano.
 % TODO(tesis): verificar que las fuentes [2] y [3] sustenten esta afirmación (tratan barreras para adoptar entrega continua)
@@ -76,7 +76,7 @@ profunda o la descomposición en microservicios. Sin embargo, diferentes estudio
 de software empresarial advierten sobre los elevados riesgos y costos que puede ocasionar esta estrategia,
 especialmente en infraestructura restringida y autoalojada. La práctica documentada respalda la modernización
 incremental \cite{Kosinska2020}, un enfoque que prioriza la contenedorización de la aplicación tal como está,
-aislando sus dependencias de tiempo de ejecución (como el \emph{runtime} de la aplicación) sin reescribir la lógica
+aislando sus dependencias de tiempo de ejecución (\emph{runtime}) sin reescribir la lógica
 del negocio. Este es un paso crítico en contextos que operan sobre infraestructura propia y carecen de
 orquestación en la nube pública.
 
@@ -85,12 +85,12 @@ y heterogéneo (un motor relacional y uno documental simultáneos), desprovisto 
 referencial. Estudios empíricos sobre entrega continua, como el de Shahin et al. \cite{Shahin2017}, identifican la 
 sincronización y la evolución de esquemas de bases de datos como uno de los cuellos de botella técnicos más severos
 al automatizar despliegues. Dado que no existe una gestión de transacciones distribuidas entre ambos motores, 
-cualquier estrategia de automatización debe tratar ambas bases como una unidad lógica unificada al ejecutar 
-migraciones o \emph{backfills} de datos. Esto impone una restricción de diseño severa para el \emph{pipeline} propuesto.
+cualquier estrategia de automatización debe tratar ambas bases como una unidad lógica al ejecutar 
+migraciones o \emph{backfills} de datos. Esto impone una restricción de diseño importante para el \emph{pipeline} propuesto.
 
 Por otra parte, el obstáculo más significativo frente a la literatura tradicional de CI/CD es la 
 validación del código. La inmensa mayoría de los trabajos académicos asumen la preexistencia de una 
-suite de pruebas automatizadas como el \emph{quality gate} (compuerta de calidad) principal. 
+\emph{suite} de pruebas automatizadas como el \emph{quality gate} (compuerta de calidad) principal. 
 Cuando un sistema \emph{legacy} carece de pruebas unitarias o de integración, forzar la entrega continua 
 presenta un riesgo crítico. Para cerrar esta brecha en escenarios con datos altamente acoplados, 
 se recomienda desplegar los cambios en entornos de prueba bajo demanda (\emph{on-demand preview environments}), 
@@ -100,18 +100,18 @@ donde una persona puede validar el cambio de forma manual en condiciones parecid
 Operar con servidores propios (\emph{on-premise})
 añade una capa final de complejidad debido a restricciones presupuestales y a la falta de registros de 
 contenedores (\emph{container registries}) preexistentes. Un precedente altamente relevante en este rubro 
-es el trabajo de Morales Agredo \cite{MoralesAgredo2021} en la Pontificia Universidad Javeriana Cali, quien 
-diseñó una propuesta de CI/CD orientada a aplicaciones \emph{legacy} universitarias. Su investigación 
+es el trabajo de Morales Agredo \cite{MoralesAgredo2021}, quien diseñó en la Pontificia Universidad Javeriana Cali
+una propuesta de CI/CD orientada a aplicaciones \emph{legacy} universitarias. Su investigación 
 demuestra que la transición hacia flujos automatizados con plataformas autoalojadas (\emph{self-hosted}) 
 es viable e imperativa en organizaciones con infraestructura limitada, sin depender de proveedores externos.
 
-Cruzando los ejes anteriores emerge con claridad la brecha técnica y operativa que motiva este trabajo. 
+Al cruzar los ejes anteriores, emerge con claridad la brecha técnica y operativa que motiva este trabajo. 
 La literatura revisada documenta sólidamente cómo evaluar el desempeño, los riesgos del error humano, 
 la viabilidad de la contenedorización incremental y la modernización de sistemas \emph{legacy}
 con plataformas autoalojadas. Ninguno de estos trabajos, sin embargo, aborda de manera conjunta la automatización de la
 entrega de un sistema monolítico con un esquema de datos heterogéneo, operado sobre infraestructura
 \emph{on-premise} sin acceso a nube pública, y que deba garantizar la seguridad del despliegue en 
-ausencia total de una suite de pruebas automatizadas. Es precisamente en la resolución simultánea
+ausencia total de una \emph{suite} de pruebas automatizadas. Es precisamente en la resolución simultánea
 de estas restricciones operativas donde se inscribe la contribución de este proyecto.
 % TODO(tesis): revisar «sin acceso a nube pública» según los servicios externos que use el pipeline
 
@@ -123,14 +123,14 @@ de estas restricciones operativas donde se inscribe la contribución de este pro
 
 \textbf{Problema central.} Dificultad para desplegar y probar los cambios del sistema de forma 
 confiable y repetible: el despliegue depende de pasos manuales que realizan distintas personas, los 
-cambios no pueden probarse en condiciones parecidas a producción antes de llegar a ella y los datos están 
+cambios no pueden probarse en condiciones parecidas a las de producción antes de llegar a ella y los datos están 
 repartidos en dos bases de datos que deben actualizarse de manera coordinada.
 
 \subsection{Justificación}
 La automatización del ciclo de entrega de software no busca únicamente acelerar el desarrollo de la 
 aplicación, sino reducir los riesgos de operar un sistema crítico. En el sistema de estudio, la
 seguridad de cada despliegue descansa en la memoria de quien lo ejecuta y en la revisión entre pares,
-porque no existen pruebas automáticas ni un entorno de validación al que pueda acceder un usuario final.
+porque no existen pruebas automatizadas ni un entorno de validación al que pueda acceder un usuario final.
 Mientras sea así, cualquier defecto que escape a la revisión o cualquier paso omitido termina afectando
 a quienes usan el sistema.
 
@@ -156,12 +156,12 @@ los pasos manuales del despliegue y permita validar los cambios antes de su lleg
 y evaluarlo frente al proceso manual actual.
 
 \subsection{Objetivos específicos}
-Para alcanzar el objetivo general propuesto, se plantea estructurar las siguientes metas específicas:
+Para alcanzar el objetivo general propuesto, se plantean los siguientes objetivos específicos:
 \begin{itemize}
   \item Empaquetar la aplicación en imágenes de contenedor versionadas, sin modificar su lógica de negocio, 
   para que se ejecute de la misma forma en desarrollo, pruebas y producción.
   \item Implementar el despliegue de prueba bajo demanda: que cualquier integrante del equipo pueda elegir desde GitLab una rama y una instancia de prueba, y desplegar ahí la aplicación con sus dos bases de datos (MySQL y MongoDB), con opciones para aplicar migraciones y cargar datos de prueba generados mediante \emph{seeders}.
-  \item Configurar en GitLab, sobre infraestructura autoalojada, un \emph{pipeline} que en cada cambio que se sube al repositorio construya la imagen y lo verifique mediante compuertas de calidad, ante la ausencia de una suite de pruebas automatizadas.
+  \item Configurar en GitLab, sobre infraestructura autoalojada, un \emph{pipeline} que en cada cambio que se sube al repositorio construya la imagen y lo verifique mediante compuertas de calidad, ante la ausencia de una \emph{suite} de pruebas automatizadas.
   % TODO(tesis): definir cuáles son las compuertas de calidad del sistema heredado
   \item Automatizar el despliegue a producción a partir de una rama de liberación (\emph{release}), con aprobación manual, ejecutando en orden las migraciones de ambas bases de datos y verificando al final que la aplicación responde.
   % TODO(tesis): definir cómo se verifica que la aplicación responde y cómo se aplican los cambios de MongoDB en el despliegue
@@ -177,6 +177,6 @@ Para alcanzar el objetivo general propuesto, se plantea estructurar las siguient
 \textbf{Alcances.} El proyecto se limita a un sistema, desarrollado con Laravel, MySQL y MongoDB, y cubre: la contenedorización de la aplicación sin modificar su lógica; un \emph{pipeline} en GitLab autoalojado con compuertas de calidad; el despliegue de prueba bajo demanda en instancias de prueba; el despliegue a producción desde una rama de liberación con aprobación manual, con sus migraciones; y la comparación con el proceso manual actual.
 % TODO(tesis): confirmar que ya existen instancias de prueba para este sistema o si prepararlas forma parte del trabajo
 
-\textbf{No incluye.} La reescritura del sistema ni su división en microservicios, la creación de una suite de pruebas automatizadas, la creación automática de instancias de prueba, la alta disponibilidad ni la actualización de versión de Laravel o PHP.
+\textbf{No incluye.} La reescritura del sistema ni su división en microservicios, la creación de una \emph{suite} de pruebas automatizadas, la creación automática de instancias de prueba, la alta disponibilidad ni la actualización de versión de Laravel o PHP.
 
-\textbf{Limitaciones.} Al tratarse de un solo sistema, los resultados no pueden generalizarse sin más a otros. Las compuertas de calidad no sustituyen a una suite de pruebas, y en la instancia de prueba los cambios se siguen validando a mano. Las instancias de prueba son un número limitado y cada una prueba una rama a la vez. Los datos de prueba no reproducen todos los casos de uso reales. La línea base del proceso manual se reconstruye a partir de registros parciales, porque antes no se medía.
+\textbf{Limitaciones.} Al tratarse de un solo sistema, los resultados no pueden generalizarse sin más a otros. Las compuertas de calidad no sustituyen a una \emph{suite} de pruebas, y en la instancia de prueba los cambios se siguen validando a mano. Las instancias de prueba son limitadas en número y cada una prueba una rama a la vez. Los datos de prueba no reproducen todos los casos de uso reales. La línea base del proceso manual se reconstruye a partir de registros parciales, porque antes no se medía.
