@@ -15,9 +15,9 @@ El proceso funciona de la siguiente manera (Figura~\ref{fig:arquitectura_solucio
 Las características principales del proceso son:
 \begin{itemize}
   \item \textbf{Imágenes versionadas.} Las imágenes de todos los ambientes se construyen a partir de la misma definición y de la misma imagen base, lo que reduce las diferencias de configuración entre ambientes.
-  \item \textbf{Infraestructura autoalojada.} GitLab, su registro de contenedores y los servidores donde se despliega operan en infraestructura de la organización.
+  \item \textbf{Infraestructura autoalojada.} GitLab, su registro de contenedores y los servidores donde se despliega son propios y se administran internamente.
   % TODO(tesis): decidir si el pipeline usa servicios externos y cómo se describen
-  \item \textbf{Despliegue de prueba bajo demanda.} Una instancia de prueba es un servidor de la organización donde se despliega la aplicación para validar un cambio. Cualquier integrante puede desplegar una rama en una de ellas, con datos de prueba generados mediante \emph{seeders} que respetan las relaciones entre MySQL y MongoDB. Las instancias son persistentes y cada una aloja una rama a la vez. La validación funcional sigue siendo manual: la instancia la hace posible y ordenada, pero no la sustituye.
+  \item \textbf{Despliegue de prueba bajo demanda.} Una instancia de prueba es un servidor interno donde se despliega la aplicación para validar un cambio. Cualquier integrante puede desplegar una rama en una de ellas, con datos de prueba generados mediante \emph{seeders} que respetan las relaciones entre MySQL y MongoDB. Las instancias son persistentes y cada una aloja una rama a la vez. La validación funcional sigue siendo manual: la instancia la hace posible y ordenada, pero no la sustituye.
   \item \textbf{Despliegue coordinado de las dos bases de datos.} Las migraciones de ambos motores se ejecutan en un orden definido y antes de exponer el código nuevo. Como los motores no comparten transacciones, el proceso asegura el orden y la verificación, no la atomicidad.
   \item \textbf{Controles en producción.} El despliegue requiere la aprobación manual de un rol autorizado y no permite borrar la base de datos.
 \end{itemize}

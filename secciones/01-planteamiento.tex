@@ -16,10 +16,10 @@ depende de una convención y no de una restricción verificada por el sistema.
 
 El sistema, desarrollado con Laravel 8 y PHP 8.3 y mantenido por cinco personas, nació hace dos años orientado 
 principalmente a procesos operativos, con funciones como la generación de resguardos de unidad y 
-bitácoras de servicio. Con el tiempo escaló hacia el área administrativa de la organización, incorporando 
+bitácoras de servicio. Con el tiempo escaló hacia el área administrativa e incorporó
 de forma progresiva nuevas funcionalidades hasta
 convertirse en el sistema principal de la organización, sin que su arquitectura se revisara al mismo ritmo
-que su alcance. Actualmente sostiene operaciones críticas de la organización, mientras que su
+que su alcance. Hoy sostiene operaciones críticas, mientras que su
 proceso de despliegue continúa siendo completamente manual.
 
 Cualquiera de los cinco integrantes del equipo puede realizar un despliegue, y para hacerlo es necesario 
@@ -43,9 +43,9 @@ fusionado sin desplegar por periodos prolongados, pero no hay un dato preciso qu
 Tampoco se conoce, con el mismo nivel de precisión, qué proporción de despliegues requiere una
 corrección posterior.
 
-El proceso manual presenta un riesgo asociado a la ejecución de pasos a mano, específico de los 
-despliegues que agrupan varios cambios: omitir alguna migración o \emph{seeder} de los distintos 
-cambios acumulados. Hasta ahora no hay evidencia de que se haya materializado, y los pocos olvidos 
+El proceso manual, al depender de pasos ejecutados a mano, presenta un riesgo propio de los
+despliegues que agrupan varios cambios: omitir alguna migración o \emph{seeder} de los
+cambios acumulados. Hasta ahora no ha ocurrido, y los pocos olvidos
 de ejecución que se han presentado se corrigieron con rapidez y sin consecuencias relevantes.
 
 \subsection{Antecedentes}
@@ -63,9 +63,9 @@ definición operacional ya validados, ofreciendo un marco científico para cuant
 Sobre la adopción de Integración y Entrega Continua (CI/CD), existe un consenso sólido respecto a las principales barreras
 de implementación. Revisiones sistemáticas de literatura empírica desarrolladas por Laukkanen et al. \cite{Laukkanen2017} y
 Proulx et al. \cite{Proulx2018} coinciden en que los factores humanos y organizacionales superan holgadamente a los
-problemas técnicos en la generación de fallas durante la liberación de código. Estos hallazgos son consistentes con el 
-diagnóstico del sistema de estudio: la omisión de una migración al agrupar varios cambios en un mismo despliegue es 
-un riesgo identificado, sin evidencia de haberse materializado, que depende de la ejecución manual de pasos.
+problemas técnicos en la generación de fallas durante la liberación de código. Estos hallazgos coinciden con lo que
+se observa en el sistema de estudio, cuyo principal riesgo de despliegue (omitir una migración cuando se agrupan
+varios cambios) depende de que una persona ejecute cada paso a mano.
 % TODO(tesis): verificar que las fuentes [2] y [3] sustenten esta afirmación (tratan barreras para adoptar entrega continua)
 La literatura señala que la automatización mediante un \emph{pipeline} establece un mecanismo restrictivo 
 de construcción que puede reducir la posibilidad de errores humanos por omisión al hacer explícitos y 
@@ -117,9 +117,9 @@ de estas restricciones operativas donde se inscribe la contribución de este pro
 
 
 \subsection{Definición del problema}
-\textbf{Situación actual.} El sistema principal de la organización se despliega en producción de forma completamente manual: quien despliega entra por SSH al servidor, actualiza el código con Git y ejecuta a mano las migraciones de las dos bases de datos (una relacional y una documental), sin ninguna verificación automática. Los cambios se revisan entre el equipo antes de fusionarse, pero el sistema no tiene pruebas automatizadas ni un entorno donde probarlos en condiciones parecidas a las de producción, y no se registra cuánto tardan los cambios en llegar a producción ni cuántos despliegues requieren una corrección posterior.
+\textbf{Situación actual.} El despliegue del sistema a producción es completamente manual y no incluye ninguna verificación automática: cada paso, incluidas las migraciones de las dos bases de datos, lo ejecuta a mano quien despliega. Los cambios se revisan entre el equipo antes de fusionarse, pero no hay pruebas automatizadas ni un entorno que reproduzca las condiciones de producción, y no se registra cuánto tardan los cambios en llegar a producción ni cuántos despliegues requieren una corrección.
 
-\textbf{Consecuencias.} Como cinco personas pueden desplegar, y en algunas semanas se hace casi a diario, cada despliegue depende de que quien lo realice recuerde y ejecute en orden todos los pasos. Hasta ahora esto ha causado pocos problemas, pero al agrupar varios cambios en un mismo despliegue existe el riesgo, aún no materializado, de omitir una migración. Por otra parte, un error que la revisión entre pares no detecte llega directamente a producción, a un sistema del que dependen operaciones críticas, y sin registros no hay forma de saber con qué frecuencia ocurre.
+\textbf{Consecuencias.} Cada despliegue depende de que quien lo realice recuerde y ejecute en orden todos los pasos, una tarea frecuente que se reparte entre distintas personas. Hasta ahora esto ha causado pocos problemas, pero cuando se agrupan varios cambios basta un descuido para omitir una migración. Además, la revisión entre pares es la única barrera antes de producción: lo que no detecte llega directamente a un sistema del que dependen operaciones críticas, y sin registros no hay forma de saber con qué frecuencia ocurre.
 
 \textbf{Problema central.} Dificultad para desplegar y probar los cambios del sistema de forma 
 confiable y repetible: el despliegue depende de pasos manuales que realizan distintas personas, los 
@@ -128,17 +128,16 @@ repartidos en dos bases de datos que deben actualizarse de manera coordinada.
 
 \subsection{Justificación}
 La automatización del ciclo de entrega de software no busca únicamente acelerar el desarrollo de la 
-aplicación, sino reducir los riesgos de operar un sistema crítico. En este sistema, los cambios 
-llegan a producción mediante pasos manuales que pueden realizar cinco personas distintas, en ocasiones 
-casi a diario, y la única verificación previa es la revisión entre pares, porque no existen 
-pruebas automáticas ni un entorno de validación que pueda ser usado por un usuario final. 
-En estas condiciones, un error que la revisión no detecte, o un paso omitido en el despliegue
- como una migración, llega directamente a quienes usan el sistema.
+aplicación, sino reducir los riesgos de operar un sistema crítico. En el sistema de estudio, la
+seguridad de cada despliegue descansa en la memoria de quien lo ejecuta y en la revisión entre pares,
+porque no existen pruebas automáticas ni un entorno de validación al que pueda acceder un usuario final.
+Mientras sea así, cualquier defecto que escape a la revisión o cualquier paso omitido termina afectando
+a quienes usan el sistema.
 
 Un proceso automatizado con entornos de prueba bajo demanda atiende esta situación de tres maneras. 
 Primero, sustituye los pasos manuales por un \emph{pipeline} que los ejecuta siempre igual, 
-sin importar quién despliegue. Segundo, permite probar un cambio en condiciones parecidas a las 
-de producción antes de fusionarlo cuando se requiere, mientras que las compuertas de calidad 
+sin importar quién despliegue. Segundo, cuando se requiere, permite validar un cambio en una
+instancia de prueba antes de fusionarlo, mientras que las compuertas de calidad 
 del \emph{pipeline} detectan de forma automática algunos defectos desde que se sube el cambio. 
 Ninguno de estos controles garantiza la ausencia de errores, pero aumentan la probabilidad de 
 detectarlos antes de llegar a producción. Tercero, deja registro de cada despliegue, algo que hoy 
@@ -175,9 +174,9 @@ Para alcanzar el objetivo general propuesto, se plantea estructurar las siguient
 [Opcional según el tipo de trabajo.]
 
 \subsection{Alcances y limitaciones}
-\textbf{Alcances.} El proyecto se limita a un sistema, desarrollado con Laravel, MySQL y MongoDB, y cubre: la contenedorización de la aplicación sin modificar su lógica; un \emph{pipeline} en GitLab autoalojado con compuertas de calidad en cada cambio que se sube al repositorio; el despliegue de prueba bajo demanda en instancias de prueba; el despliegue a producción desde una rama de liberación con aprobación manual, con sus migraciones; y la comparación con el proceso manual actual.
+\textbf{Alcances.} El proyecto se limita a un sistema, desarrollado con Laravel, MySQL y MongoDB, y cubre: la contenedorización de la aplicación sin modificar su lógica; un \emph{pipeline} en GitLab autoalojado con compuertas de calidad; el despliegue de prueba bajo demanda en instancias de prueba; el despliegue a producción desde una rama de liberación con aprobación manual, con sus migraciones; y la comparación con el proceso manual actual.
 % TODO(tesis): confirmar que ya existen instancias de prueba para este sistema o si prepararlas forma parte del trabajo
 
 \textbf{No incluye.} La reescritura del sistema ni su división en microservicios, la creación de una suite de pruebas automatizadas, la creación automática de instancias de prueba, la alta disponibilidad ni la actualización de versión de Laravel o PHP.
 
-\textbf{Limitaciones.} Al tratarse de un solo sistema, los resultados no pueden generalizarse sin más a otros. Las compuertas de calidad no sustituyen a una suite de pruebas, y la validación funcional en la instancia de prueba sigue siendo manual. Las instancias de prueba son un número limitado y cada una prueba una rama a la vez. Los datos de prueba no reproducen todos los casos de uso reales. La línea base del proceso manual se reconstruye a partir de registros parciales, porque antes no se medía.
+\textbf{Limitaciones.} Al tratarse de un solo sistema, los resultados no pueden generalizarse sin más a otros. Las compuertas de calidad no sustituyen a una suite de pruebas, y en la instancia de prueba los cambios se siguen validando a mano. Las instancias de prueba son un número limitado y cada una prueba una rama a la vez. Los datos de prueba no reproducen todos los casos de uso reales. La línea base del proceso manual se reconstruye a partir de registros parciales, porque antes no se medía.
