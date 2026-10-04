@@ -8,13 +8,13 @@
 
 \section{Planteamiento del problema}
 Una organización del sector público mantiene su sistema principal, el cual sostiene gran parte de la
-operación administrativa y operativa e integra las diferentes áreas de esta organización. La información
+operación administrativa y operativa, integrando las diferentes áreas de esta organización. La información
 se almacena en dos motores de base de datos, uno relacional y otro documental. El segundo, al no ser relacional,
 no implementa llaves foráneas como restricción del propio motor y, al tratarse de motores distintos, tampoco
 hay un mecanismo de integridad referencial que los conecte entre sí, por lo que la relación entre los datos
 depende de una convención y no de una restricción verificada por el sistema.
 
-El sistema, desarrollado con Laravel 8 y PHP 8.3 y mantenido por cinco personas, nació hace tres años orientado 
+El sistema, desarrollado con Laravel 8 y PHP 8.3 y mantenido por cinco personas, nació hace dos años orientado 
 principalmente a procesos operativos, con funciones como la generación de resguardos de unidad y 
 bitácoras de servicio. Con el tiempo escaló hacia el área administrativa de la organización, incorporando 
 de forma progresiva nuevas funcionalidades hasta
@@ -127,9 +127,22 @@ cambios no pueden probarse en condiciones parecidas a producción antes de llega
 repartidos en dos bases de datos que deben actualizarse de manera coordinada.
 
 \subsection{Justificación}
-La automatización del ciclo de entrega de software no busca únicamente acelerar el desarrollo de la aplicación, sino reducir los riesgos de operar un sistema crítico. En este sistema, los cambios llegan a producción mediante pasos manuales que pueden realizar cinco personas distintas, en ocasiones casi a diario, y la única verificación previa es la revisión entre pares, porque no existen pruebas automáticas ni un entorno de validación que pueda ser usado por un usuario final. En estas condiciones, un error que la revisión no detecte, o un paso omitido en el despliegue como una migración, llega directamente a quienes usan el sistema.
+La automatización del ciclo de entrega de software no busca únicamente acelerar el desarrollo de la 
+aplicación, sino reducir los riesgos de operar un sistema crítico. En este sistema, los cambios 
+llegan a producción mediante pasos manuales que pueden realizar cinco personas distintas, en ocasiones 
+casi a diario, y la única verificación previa es la revisión entre pares, porque no existen 
+pruebas automáticas ni un entorno de validación que pueda ser usado por un usuario final. 
+En estas condiciones, un error que la revisión no detecte, o un paso omitido en el despliegue
+ como una migración, llega directamente a quienes usan el sistema.
 
-Un proceso automatizado con entornos de prueba bajo demanda atiende esta situación de tres maneras. Primero, sustituye los pasos manuales por un \emph{pipeline} que los ejecuta siempre igual, sin importar quién despliegue. Segundo, permite probar un cambio en condiciones parecidas a las de producción antes de fusionarlo, cuando se requiere, mientras que las compuertas de calidad del \emph{pipeline} detectan de forma automática algunos defectos desde que se sube el cambio. Ninguno de estos controles garantiza la ausencia de errores, pero aumentan la probabilidad de detectarlos antes de llegar a producción. Tercero, deja registro de cada despliegue, algo que hoy no existe y que permite evaluar el proceso con datos.
+Un proceso automatizado con entornos de prueba bajo demanda atiende esta situación de tres maneras. 
+Primero, sustituye los pasos manuales por un \emph{pipeline} que los ejecuta siempre igual, 
+sin importar quién despliegue. Segundo, permite probar un cambio en condiciones parecidas a las 
+de producción antes de fusionarlo cuando se requiere, mientras que las compuertas de calidad 
+del \emph{pipeline} detectan de forma automática algunos defectos desde que se sube el cambio. 
+Ninguno de estos controles garantiza la ausencia de errores, pero aumentan la probabilidad de 
+detectarlos antes de llegar a producción. Tercero, deja registro de cada despliegue, algo que hoy 
+no existe y que permite evaluar el proceso con datos.
 
 Esto beneficia al equipo técnico, al reducir su dependencia de procedimientos manuales y favorecer un proceso estandarizado,
 repetible y con trazabilidad. También beneficia a la institución, al disminuir el riesgo de que un error afecte la operación
