@@ -1,19 +1,19 @@
 """Genera Imagenes/diagramas/arquitectura_cicd.png para secciones/03-propuesta.tex.
 
-Distribución (flujo de izquierda a derecha, luego hacia abajo):
-  fila 1 (CI):        Desarrollador -> Repositorio -> Pipeline -> Build -> Compuertas
-  fila 2 (entornos):  Producción  <-(validación manual)-  Entorno de prueba efímero
-  fila 3 (datos):     bases de datos duales de cada entorno
+Distribución (de arriba hacia abajo):
+  fila 1 (revisión):   Desarrollador -> Repositorio -> Build -> Compuertas; Build -> Registro
+  fila 2 (entornos):   Instancia de prueba (bajo demanda, validación manual)  |  Producción
+  fila 3 (liberación): rama de liberación -> Verificaciones -> Aprobación manual -> Producción
 """
 from pathlib import Path
 
 from diagrams import Cluster, Diagram, Edge
-from diagrams.onprem.ci import GitlabCI
-from diagrams.onprem.client import Client
+from diagrams.generic.storage import Storage
+from diagrams.onprem.client import Client, User
 from diagrams.onprem.container import Docker
 from diagrams.onprem.database import MongoDB, MySQL
-from diagrams.onprem.security import Trivy  # Sustituir por el ícono de la herramienta real (p. ej. SonarQube)
 from diagrams.onprem.vcs import Gitlab
+from diagrams.programming.flowchart import Decision  # Ícono neutro: las compuertas aún no están definidas
 
 OUT = Path(__file__).resolve().parent.parent / "Imagenes" / "diagramas" / "arquitectura_cicd"
 
@@ -34,6 +34,16 @@ def link(a, b, label="", arrow="fwd", **kw):
                       forward=arrow == "fwd", reverse=arrow == "back", **kw))
 
 
+def app_with_data(data_label):
+    """Contenedor de la aplicación con sus dos bases de datos."""
+    app = Docker("App (contenedor)")
+    with Cluster(data_label, graph_attr=data_attr):
+        dbs = (MySQL("MySQL"), MongoDB("MongoDB"))
+    for db in dbs:
+        link(app, db, arrow="none")
+    return app
+
+
 with Diagram(
     "Arquitectura del modelo de entrega continua",
     filename=str(OUT), outformat="png", direction="TB",
@@ -42,41 +52,42 @@ with Diagram(
     dev = Client("Desarrollador")
 
     with Cluster("Infraestructura autoalojada (on-premise)", graph_attr=onprem_attr):
-        repo = Gitlab("Repositorio Git")
+        with Cluster("GitLab", graph_attr=stage_attr):
+            repo = Gitlab("Repositorio Git")
+            registry = Storage("Registro de\ncontenedores")
 
-        with Cluster("Runner CI/CD", graph_attr=stage_attr):
-            pipe = GitlabCI("Pipeline")
-            build = Docker("Build de imagen\ninmutable")
-            gate = Trivy("Compuertas de calidad\n(análisis estático)")
+        with Cluster("Pipeline de revisión (cada rama)", graph_attr=stage_attr):
+            build = Docker("Build de imagen\nversionada")
+            gate = Decision("Compuertas\nde calidad")
+
+        with Cluster("Instancia de prueba (persistente, validación manual)", graph_attr=stage_attr):
+            test_app = app_with_data("Datos de prueba (seeders)")
+
+        with Cluster("Pipeline de despliegue (rama de liberación)", graph_attr=stage_attr):
+            checks = Decision("Verificaciones")
+            approval = User("Aprobación manual\n(rol autorizado)")
 
         with Cluster("Producción", graph_attr=stage_attr):
-            prod_app = Docker("App (contenedor)")
-            with Cluster("Datos duales", graph_attr=data_attr):
-                prod_mysql = MySQL("MySQL")
-                prod_mongo = MongoDB("MongoDB")
-
-        with Cluster("Entorno de prueba efímero", graph_attr=stage_attr):
-            test_app = Docker("App (contenedor)")
-            with Cluster("Datos duales\n(dump sanitizado)", graph_attr=data_attr):
-                test_mysql = MySQL("MySQL")
-                test_mongo = MongoDB("MongoDB")
+            prod_app = app_with_data("Datos de producción")
 
     # Filas: nodos con el mismo rank quedan alineados horizontalmente.
-    diag.dot.body.append("\t{rank=same; %s}" % "; ".join('"%s"' % n.nodeid for n in (dev, repo, pipe, build, gate)))
-    diag.dot.body.append("\t{rank=same; %s}" % "; ".join('"%s"' % n.nodeid for n in (prod_app, test_app)))
+    def same_rank(*nodes):
+        diag.dot.body.append("\t{rank=same; %s}" % "; ".join('"%s"' % n.nodeid for n in nodes))
+
+    same_rank(dev, repo, build, gate)
+    same_rank(registry, checks, approval)
+    same_rank(test_app, prod_app)
 
     # Fila 1: integración continua (pesos altos para mantenerla recta)
-    link(dev, repo, "1. git push", weight="20")
-    link(repo, pipe, "2. trigger", weight="20")
-    link(pipe, build, "3. build", weight="20")
-    link(build, gate, "4. análisis", weight="20")
+    link(dev, repo, "1. push de rama", weight="20")
+    link(repo, build, "2", weight="20")
+    link(build, gate, "3", weight="20")
+    link(build, registry, "imagen", style="dashed")
 
-    # Paso a la fila 2: aprovisionamiento y promoción
-    link(gate, test_app, "5. aprovisiona", weight="20")
-    link(prod_app, test_app, "6. validación manual\naprobada\n(misma imagen)", arrow="back")
+    # Despliegue de prueba bajo demanda
+    link(registry, test_app, "4. despliegue\nbajo demanda")
 
-    # Fila 3: datos de cada entorno
-    for db in (prod_mysql, prod_mongo):
-        link(prod_app, db, arrow="none")
-    for db in (test_mysql, test_mongo):
-        link(test_app, db, arrow="none")
+    # Liberación a producción
+    link(repo, checks, "5. rama de liberación")
+    link(checks, approval, "6")
+    link(approval, prod_app, "7. migraciones en orden\n+ verificación")
