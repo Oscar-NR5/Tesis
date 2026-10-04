@@ -116,20 +116,9 @@ de estas restricciones operativas donde se inscribe la contribución de este pro
 
 
 \subsection{Definición del problema}
-\textbf{Situación actual.} El sistema principal de la organización se despliega en producción de 
-forma completamente manual: quien despliega entra por SSH al servidor, actualiza el código con Git, 
-ejecuta a mano las migraciones de las dos bases de datos (una relacional y una documental) y limpia las 
-cachés, sin ninguna verificación automática. Los cambios se revisan entre el equipo antes de fusionarse, 
-pero el sistema no tiene pruebas automatizadas ni un entorno donde probarlos en condiciones parecidas 
-a las de producción, y no se registra cuánto tardan en desplegarse ni cuántos requieren una corrección posterior.
+\textbf{Situación actual.} El sistema principal de la organización se despliega en producción de forma completamente manual: quien despliega entra por SSH al servidor, actualiza el código con Git y ejecuta a mano las migraciones de las dos bases de datos (una relacional y una documental), sin ninguna verificación automática. Los cambios se revisan entre el equipo antes de fusionarse, pero el sistema no tiene pruebas automatizadas ni un entorno donde probarlos en condiciones parecidas a las de producción, y no se registra cuánto tardan los cambios en llegar a producción ni cuántos despliegues requieren una corrección posterior.
 
-\textbf{Consecuencias.} Como cinco personas pueden desplegar, y en algunas semanas se hace casi a 
-diario, cada despliegue depende de que quien lo realice recuerde todos los pasos. Hasta ahora esto ha causado 
-pocos problemas: en contadas ocasiones se olvidó limpiar las cachés y el sistema mostró una versión anterior, 
-algo que se corrigió con rapidez. Al agrupar varios cambios en un mismo despliegue existe además el riesgo, 
-aún no materializado, de omitir una migración. Por otra parte, un error que la revisión entre pares no detecte 
-llega directamente a producción, a un sistema del que dependen operaciones críticas, y sin registros 
-no hay forma de saber con qué frecuencia ocurre.
+\textbf{Consecuencias.} Como cinco personas pueden desplegar, y en algunas semanas se hace casi a diario, cada despliegue depende de que quien lo realice recuerde y ejecute en orden todos los pasos. Hasta ahora esto ha causado pocos problemas, pero al agrupar varios cambios en un mismo despliegue existe el riesgo, aún no materializado, de omitir una migración. Por otra parte, un error que la revisión entre pares no detecte llega directamente a producción, a un sistema del que dependen operaciones críticas, y sin registros no hay forma de saber con qué frecuencia ocurre.
 
 \textbf{Problema central.} Dificultad para desplegar y probar los cambios del sistema de forma 
 confiable y repetible: el despliegue depende de pasos manuales que realizan distintas personas, los 
