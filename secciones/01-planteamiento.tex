@@ -161,4 +161,9 @@ Para alcanzar el objetivo general propuesto, se plantea estructurar las siguient
 [Opcional según el tipo de trabajo.]
 
 \subsection{Alcances y limitaciones}
-[Qué sí y qué no cubre el proyecto.]
+\textbf{Alcances.} El proyecto se limita a un sistema, desarrollado con Laravel, MySQL y MongoDB, y cubre: la contenedorización de la aplicación sin modificar su lógica; un \emph{pipeline} en GitLab autoalojado con compuertas de calidad en cada cambio que se sube al repositorio; el despliegue de prueba bajo demanda en instancias de prueba; el despliegue a producción desde una rama de liberación con aprobación manual, con sus migraciones; y la comparación con el proceso manual actual.
+% TODO(tesis): confirmar que ya existen instancias de prueba para este sistema o si prepararlas forma parte del trabajo
+
+\textbf{No incluye.} La reescritura del sistema ni su división en microservicios, la creación de una suite de pruebas automatizadas, la creación automática de instancias de prueba, la alta disponibilidad ni la actualización de versión de Laravel o PHP.
+
+\textbf{Limitaciones.} Al tratarse de un solo sistema, los resultados no pueden generalizarse sin más a otros. Las compuertas de calidad no sustituyen a una suite de pruebas, y la validación funcional en la instancia de prueba sigue siendo manual. Las instancias de prueba son un número limitado y cada una prueba una rama a la vez. Los datos de prueba no reproducen todos los casos de uso reales. La línea base del proceso manual se reconstruye a partir de registros parciales, porque antes no se medía.
