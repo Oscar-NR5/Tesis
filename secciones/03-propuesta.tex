@@ -1,22 +1,37 @@
 % !TEX root = ../main.tex
 \section{Producto propuesto}
-El entregable principal de este proyecto no se limita a la simple configuración de una herramienta de software, sino que
-constituye un modelo arquitectónico de referencia para la modernización de la entrega de valor en sistemas legados. La
-solución transformará el actual paradigma de despliegue artesanal, fragmentado y vulnerable en una cadena de suministro
-de software predecible, auditable y basada en principios de Infraestructura como Código (IaC).
+El producto de este proyecto es un proceso de integración y entrega continua para el sistema, diseñado para operar sobre 
+la infraestructura autoalojada de la organización. Todos sus elementos se describen en archivos versionados dentro del repositorio 
+(infraestructura como código), por lo que el proceso es repetible y queda registrado. Se compone de:
 
-Las innovaciones tecnológicas y operativas que caracterizan a esta propuesta incluyen:
 \begin{itemize}
-    \item \textbf{Estándar de inmutabilidad:} Transición hacia contenedores estandarizados que erradican la divergencia de
-    configuración entre los entornos de desarrollo local y los servidores en vivo.
-    \item \textbf{Orquestación declarativa en entornos restringidos:} Implementación de un flujo de trabajo CI/CD integral operado
-    enteramente en \emph{on-premise}, demostrando la viabilidad de la cultura DevOps sin depender de proveedores de nube pública.
-    \item \textbf{Entornos de validación de alta fidelidad:} Resolución del déficit de pruebas automatizadas mediante la instanciación
-    de replicas aisladas del sistema. Estas instancias, poblados con datos representativos del entorno de produccion, habilitaran 
-    la validación funcional manual en condiciones similares a producción antes de la fusión del código en la rama principal.
-    \item \textbf{Transaccionalidad en esquemas heterogéneos:} Automatización rigurosa de las migraciones de base de datos
-    que sincroniza los cambios estructurales entre motores (MySQL y MongoDB) como una única unidad lógica de despliegue.
+    \item Las imágenes de contenedor de la aplicación y su configuración.
+    \item Un \emph{pipeline} en GitLab que, en cada \emph{push}, construye la imagen, ejecuta el análisis estático del código y despliega un entorno de prueba.
+    \item El mecanismo para crear el entorno de prueba de una rama, con la aplicación y sus dos bases de datos cargadas con datos de prueba.
+    \item El despliegue automatizado a producción, que ejecuta en orden las migraciones de ambas bases de datos, limpia las cachés y verifica que la aplicación responda.
+    \item La documentación de uso y el informe de evaluación frente al proceso manual actual.
 \end{itemize}
+
+El proceso funciona de la siguiente manera (Figura~\ref{fig:arquitectura_solucion}). Cuando un desarrollador
+sube una rama al repositorio, GitLab inicia un \emph{pipeline} que construye la imagen de contenedor de la aplicacion
+y ejecuta el análisis estático del código. Si el análisis se aprueba, el \emph{pipeline} despliega un entorno
+ de prueba con esa rama. En ese entorno, el equipo realiza la validación funcional manual del cambio. Una vez validado, 
+ se abre la solicitud de cambio, se revisa y se fusiona. Al fusionarse, el \emph{pipeline} despliega la aplicación 
+ en producción [CONFIRMAR: de forma automática o tras una aprobación en GitLab].
+
+ \begin{itemize}
+    \item \textbf{Imágenes versionadas.} La misma imagen de contenedor se usa en desarrollo, pruebas y 
+    producción, lo que reduce las diferencias de configuración entre ambientes.
+    \item \textbf{Infraestructura autoalojada.} Todo el proceso opera en los servidores 
+    de la organización, sin depender de servicios de nube pública.
+    \item \textbf{Entorno de prueba bajo demanda.} Cada rama puede probarse en un entorno propio, con datos
+    de prueba generados mediante \emph{seeders} que respeetan las relaciones entre MySQL y MongoDB. La validacion
+    funcional sigue siendo manual: el entorno la hace posible y ordenada, pero no lo sustituye.
+    \item \textbf{Despliegue coordinado de las dos bases de datos.} Las migraciones de ambos motores se ejecutan 
+    en un orden definido y verificable. Como los mototres no comparten transacciones, el proceso asegura el orden
+    y la verificacion, no la atomicidad
+
+ \end{itemize}
 
 \begin{figure}[H]
 \centering

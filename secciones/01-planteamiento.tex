@@ -14,14 +14,16 @@ no implementa llaves foráneas como restricción del propio motor y, al tratarse
 hay un mecanismo de integridad referencial que los conecte entre sí, por lo que la relación entre los datos
 depende de una convención y no de una restricción verificada por el sistema.
 
-El sistema nació hace tres años orientado principalmente a elementos operativos, con funciones 
-como la generación de resguardos de unidad y bitácoras de servicio. Con el tiempo escaló hacia el área
-administrativa de la organización, incorporando de forma progresiva nuevas funcionalidades hasta
+El sistema, desarrollado con Laravel 8 y PHP 8.3 y mantenido por cinco personas, nació hace tres años orientado 
+principalmente a procesos operativos, con funciones como la generación de resguardos de unidad y 
+bitácoras de servicio. Con el tiempo escaló hacia el área administrativa de la organización, incorporando 
+de forma progresiva nuevas funcionalidades hasta
 convertirse en el sistema principal de la organización, sin que su arquitectura se revisara al mismo ritmo
 que su alcance. Actualmente sostiene operaciones críticas de la organización, mientras que su
 proceso de despliegue continúa siendo completamente manual.
 
-Para realizar un despliegue es necesario acceder mediante SSH al servidor donde se aloja la
+Cualquiera de los cinco integrantes del equipo puede realizar un despliegue, y para hacerlo es necesario 
+acceder mediante SSH al servidor donde se aloja la
 aplicación, actualizar el código mediante operaciones de Git sobre el repositorio, ejecutar
 manualmente las migraciones pendientes y limpiar cachés de configuración y rutas, sin mecanismos
 de verificación automática. El historial del repositorio refleja un volumen considerable de
@@ -33,19 +35,18 @@ motor no relacional, que no tiene esquema fijo, operaciones equivalentes como la
 
 El ritmo de integración de cambios a la rama principal no equivale a la frecuencia real de
 despliegue: con regularidad se agrupan varios cambios fusionados antes de llevarlos al servidor,
-aunque no siempre ocurre así ni existe un criterio fijo de cuántos se acumulan. Tampoco existe un
+aunque no siempre ocurre así ni existe un criterio fijo de cuántos se acumulan.En algunas semanas, incluso, 
+se despliega casi a diario. Tampoco existe un
 registro sistemático del tiempo entre la fusión de un cambio a la rama principal y su despliegue
 real en producción; de forma informal se sabe que ese tiempo es corto, ya que no se deja código
 fusionado sin desplegar por periodos prolongados, pero no hay un dato preciso que lo respalde.
 Tampoco se conoce, con el mismo nivel de precisión, qué proporción de despliegues requiere una
 corrección posterior.
 
-El proceso manual presenta dos modos de falla asociados a la ejecución de pasos a mano. El
-primero, ya observado de forma recurrente, es olvidar limpiar las cachés de configuración y rutas
-al final de cada despliegue, lo que deja el sistema sirviendo una versión desactualizada hasta que
-se detecta el problema. El segundo, un riesgo identificado pero sin evidencia de haberse
-materializado, es específico de los despliegues que agrupan varios cambios: omitir alguna
-migración o seeder de los distintos cambios acumulados.
+El proceso manual presenta un riesgo asociado a la ejecución de pasos a mano, específico de los 
+despliegues que agrupan varios cambios: omitir alguna migración o \emph{seeder} de los distintos 
+cambios acumulados. Hasta ahora no hay evidencia de que se haya materializado, y los pocos olvidos 
+de ejecución que se han presentado se corrigieron con rapidez y sin consecuencias relevantes.
 
 \subsection{Antecedentes}
 El primer elemento a considerar al intervenir un proceso de entrega de software es establecer un mecanismo
@@ -62,13 +63,12 @@ definición operacional ya validados, ofreciendo un marco científico para cuant
 Sobre la adopción de Integración y Entrega Continua (CI/CD), existe un consenso sólido respecto a las principales barreras
 de implementación. Revisiones sistemáticas de literatura empírica desarrolladas por Lukkanen et al. \cite{Laukkanen2017} y
 Proulx et al. \cite{Proulx2018} coinciden en que los factores humanos y organizacionales superan holgadamente a los
-problemas técnicos en la generación de fallas durante la liberación de código. Estos hallazgos respaldan directamente
-el diagnóstico del sistema de estudio de este proyecto: la omisión de limpieza de cachés tras un despliegue
-manual constituye una falla observada de forma recurrente, mientras que la omisión de migraciones al agrupar
-múltiples \emph{commits} o cambios constituye un riesgo potencial identificado, sin evidencia de haberse
-materializado. Ambos problemas son consistentes con la influencia de factores humanos. La literatura señala
-que la automatización mediante un \emph{pipeline} establece un mecanismo restrictivo de construcción que puede
-reducir la posibilidad de errores humanos por omisión al hacer explícitos y verificables los pasos del despliegue.
+problemas técnicos en la generación de fallas durante la liberación de código. Estos hallazgos son consistentes con el 
+diagnóstico del sistema de estudio: la omisión de una migración al agrupar varios cambios en un mismo despliegue es 
+un riesgo identificado, sin evidencia de haberse materializado, que depende de la ejecución manual de pasos. 
+La literatura señala que la automatización mediante un \emph{pipeline} establece un mecanismo restrictivo 
+de construcción que puede reducir la posibilidad de errores humanos por omisión al hacer explícitos y 
+verificables los pasos del despliegue.
 
 Al intentar aplicar estos principios a sistemas \emph{legacy}, la literatura técnica se inclina hacia una refactorización
 profunda o la descomposición en microservicios. Sin embargo, diferentes estudios recientes en la ingeniería
@@ -92,10 +92,8 @@ validación del código. La inmensa mayoría de los trabajos académicos asumen 
 suite de pruebas automatizadas como el \emph{quality gate} (compuerta de calidad) principal. 
 Cuando un sistema \emph{legacy} carece de pruebas unitarias o de integración, forzar la entrega continua 
 presenta un riesgo crítico. Para cerrar esta brecha en escenarios con datos altamente acoplados, 
-la industria sugiere la instanciación de entornos de prueba bajo demanda 
-(\emph{on-demand preview environments}), nutridos con \emph{dumps} sanitizados de producción. 
-Esto transfiere la responsabilidad de la validación del \emph{pipeline} a un entorno aislado donde 
-se puede realizar una comprobación funcional manual de alta fidelidad.
+se recomienda desplegar los cambios en entornos de prueba bajo demanda (\emph{on-demand preview environments}), 
+donde una persona puede validar el cambio de forma manual en condiciones parecidas a las de producción antes de integrarlo.
 
 El contexto operativo institucional del sector público con servidores propios (\emph{on-premise})
 añade una capa final de complejidad debido a restricciones presupuestales y la falta de registros de 
@@ -116,50 +114,68 @@ de estas restricciones operativas donde se inscribe la contribución de este pro
 
 
 \subsection{Definición del problema}
-El problema central que aborda este trabajo radica en la inestabilidad y el riesgo técnico generados por la 
-gestión manual del ciclo de liberación de software en un entorno monolítico en producción. La ejecución directa 
-de rutinas de despliegue y configuración sobre la infraestructura en vivo, sumada a la imposibilidad de validar 
-los cambios en entornos aislados de forma previa, expone la operación a fallas recurrentes inducidas por 
-el factor humano y compromete la confiabilidad técnica de cada integración.
+\textbf{Situación actual.} El sistema principal de la organización se despliega en producción de 
+forma completamente manual: quien despliega entra por SSH al servidor, actualiza el código con Git, 
+ejecuta a mano las migraciones de las dos bases de datos (una relacional y una documental) y limpia las 
+cachés, sin ninguna verificación automática. Los cambios se revisan entre el equipo antes de fusionarse, 
+pero el sistema no tiene pruebas automatizadas ni un entorno donde probarlos en condiciones parecidas 
+a las de producción, y no se registra cuánto tardan en desplegarse ni cuántos requieren una corrección posterior.
+
+\textbf{Consecuencias.} Como cinco personas pueden desplegar, y en algunas semanas se hace casi a 
+diario, cada despliegue depende de que quien lo realice recuerde todos los pasos. Hasta ahora esto ha causado 
+pocos problemas: en contadas ocasiones se olvidó limpiar las cachés y el sistema mostró una versión anterior, 
+algo que se corrigió con rapidez. Al agrupar varios cambios en un mismo despliegue existe además el riesgo, 
+aún no materializado, de omitir una migración. Por otra parte, un error que la revisión entre pares no detecte 
+llega directamente a producción, a un sistema del que dependen operaciones críticas, y sin registros 
+no hay forma de saber con qué frecuencia ocurre.
+
+\textbf{Problema central.} Dificultad para desplegar y probar los cambios del sistema de forma 
+confiable y repetible: el despliegue depende de pasos manuales que realizan distintas personas, los 
+cambios no pueden probarse en condiciones parecidas a producción antes de llegar a ella y los datos están 
+repartidos en dos bases de datos que deben actualizarse de manera coordinada.
 
 \subsection{Justificación}
-La automatización del ciclo de entrega de software no es únicamente una medida para incrementar la velocidad en
-el desarrollo, sino un mecanismo que permite mitigar riesgos operativos. En el contexto de este proyecto, la
-ejecución de despliegues manuales sobre una infraestructura \emph{on-premise} expone a la organización
-a posibles interrupciones del servicio derivadas de errores en la configuración, como la falta de sincronización
-al aplicar migraciones o la simple omisión en la limpieza de cachés. Al carecer de una suite de pruebas
-automáticas, el riesgo de integrar cambios defectuosos a producción es elevado.
+La automatización del ciclo de entrega de software no busca unicamente acelerar el desrrollo de la aplicacion, sino
+reducir los riesgos de operar un sistema critico. En este sistema, los cambios llegan a produccion mediante pasos manuales
+que pueden realizar cinco personas distintas, en ocaciones casi diaria y la unica verificacion previa es la revision entre pares
+porque no existen pruebas automaticas ni un entorno de validacion que pueda ser usado por un usuario final. En estas
+condiciones, un error que la revision no detecte o un paso omitido en el depliegue como una migracion llega directamente a quienes
+usan el sistema.
 
-Resolver este problema genera un impacto operativo directo: al sustituir las intervenciones manuales por un 
-\emph{pipeline} declarativo y generar entornos de prueba bajo demanda, se crea una ``compuerta de calidad''
-(\emph{quality gate}) que aísla los fallos antes de que alcancen a los usuarios finales. Esto beneficia
-directamente al equipo técnico, al reducir la dependencia de procedimientos manuales susceptibles 
-a errores de omisión o ejecución, y al favorecer la estandarización, reproducibilidad y trazabilidad 
-del proceso de liberación. Asimismo, beneficia a la institución, al disminuir el riesgo de interrupciones
-durante los despliegues y contribuir a la continuidad operativa de un sistema que sustenta su gestión 
-administrativa.
+Un proceso automatizado con entornos de prueba bajo demanda atienda la situacion de tres maneras. Primero, sustituye los pasos
+manuales por un \emph{pipeline} que los ejecuta siempre igual, sin importar quien despliegue. Segundo, permite probar cada cambio
+en condiciones parecidas a las de produccion antes de fusionarlo, mientras que el analisis estatico detecta de forma automatica
+algunos defectos desde que se sube el codigo. Ninguno de estos controles garantiza la ausencia de errores, pero aumentan la probabilidad
+de detectarlos antes de llegar a produccion. Tercero, deja registro de cada despliegue, algo que hoy no existe y que permite evaluar el proceso
+con datos.
+
+Esto beneficia al equipo técnico, al reducir su dependencia de procedimientos manuales y favorecer un proceso estandarizado,
+repetible y con trazabilidad. También beneficia a la institución, al disminuir el riesgo de que un error afecte la operación
+de un sistema que sustenta su gestión administrativa. Además, el proyecto deja documentado un caso de entrega continua sobre 
+infraestructura autoalojada en un sistema sin pruebas automatizadas, que podría servir de referencia a equipos con condiciones similares.
 
 
 \subsection{Objetivo general}
-Diseñar y validar empíricamente una arquitectura de integración y entrega continua (CI/CD) adaptada a sistemas
-\emph{legacy}, mediante contenedorización y un entorno de prueba bajo demanda, con el propósito de mitigar la vulnerabilidad
-operativa y reducir las intervenciones manuales rutinarias en la infraestructura de producción de un monolito operado 
-sobre un esquema de base de datos dual y heterogéneo.
+Diseñar e implementar un proceso de integración y entrega continua para el sistema, basado en 
+contenedores y en entornos de prueba bajo demanda sobre infraestructura autoalojada, que reduzca
+los pasos manuales del despliegue y permita validar los cambios antes de su llegada a producción,
+y evaluarlo frente al proceso manual actual.
 
 \subsection{Objetivos específicos}
-Para alcanzar el objetivo general propuesto, se plantea estructurar las siguientes metas parciales:
+Para alcanzar el objetivo general propuesto, se plantea estructurar las siguientes metas especificas:
 \begin{itemize}
-  \item Aislar el entorno de ejecución de la aplicación mediante la adopción de imágenes de contenedor inmutables, preservando
-  la lógica del negocio del monolito sin recurrir a una reescritura de código orientada a microservicios.
-  \item Orquestar un mecanismo de aprovisionamiento declarativo de entornos de prueba efímeros bajo demanda,
-  alimentados por volcados de datos sanitizados del esquema heterogéneo (MySQL y MongoDB) de producción, para proveer un
-  entorno de validación de alta fidelidad.
-  \item Diseñar e implementar un \emph{pipeline} de Integración Continua (CI) sobre infraestructura autoalojada, 
-  que incorpore compuertas de calidad (\emph{quality gates}) basadas en análisis estático avanzado, para verificar
-  automáticamente cada cambio integrado al repositorio y detectar defectos, vulnerabilidades y \emph{code smells} 
-  antes de su despliegue, ante la ausencia histórica de una suite de pruebas automatizadas.
-  \item Evaluar comparativamente la resiliencia operativa de la arquitectura propuesta frente a la línea base de despliegues
-  manuales, cuantificando la mejora a través de métricas estandarizadas (\emph{deployment frequency} y \emph{change failure rate}).
+  \item Empaquetar la aplicación en imágenes de contenedor versionadas, sin modificar su lógica de negocio, 
+  para que se ejecute de la misma forma en desarrollo, pruebas y producción.
+  \item Implementar un mecanismo que, a partir de una rama del repositorio, cree un entorno de prueba 
+  bajo demanda con la aplicación y sus dos bases de datos (MySQL y MongoDB), cargadas con datos de prueba generados mediante \emph{seeders}.
+  \item Configurar en GitLab, sobre infraestructura autoalojada, un \emph{pipeline} que en cada \emph{push} 
+  construya la imagen, ejecute el análisis estático del código como compuerta de calidad y despliegue el 
+  entorno de prueba.
+  \item Automatizar el despliegue a producción, incluyendo la ejecución ordenada de las migraciones de ambas bases de datos
+  y la limpieza de cachés, con una verificación final de que la aplicación responde.
+  \item Evaluar el proceso propuesto frente al proceso manual actual, comparando el número de pasos manuales,
+   el tiempo de despliegue, el tiempo entre la fusión de un cambio y su despliegue, y la proporción de despliegues 
+   que requieren una corrección posterior.
 \end{itemize}
 
 \subsection{Hipótesis}
