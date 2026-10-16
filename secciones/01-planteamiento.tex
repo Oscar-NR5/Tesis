@@ -33,15 +33,22 @@ sobre los motores de base de datos: modificación de esquemas en el motor relaci
 motor no relacional, que no tiene esquema fijo, operaciones equivalentes como la creación de
 índices; en ambos casos deben identificarse y ejecutarse manualmente y en el orden correspondiente.
 
-El ritmo de integración de cambios a la rama principal no equivale a la frecuencia real de
-despliegue: con regularidad se agrupan varios cambios fusionados antes de llevarlos al servidor,
-aunque no siempre ocurre así ni existe un criterio fijo de cuántos se acumulan. En algunas semanas, incluso, 
-se despliega casi a diario. No existe un
-registro sistemático del tiempo entre la fusión de un cambio en la rama principal y su despliegue
-real en producción; de forma informal se sabe que ese tiempo es corto, ya que no se deja código
-fusionado sin desplegar por periodos prolongados, pero no hay un dato preciso que lo respalde.
-Tampoco se conoce, con el mismo nivel de precisión, qué proporción de despliegues requiere una
-corrección posterior.
+El ritmo de integración de cambios a la rama principal no equivale a la frecuencia real de 
+despliegue, ya que los pases a producción se realizan de forma manual y a menudo agrupan 
+varios cambios. A pesar de no contar con una telemetría exacta de los despliegues manuales, 
+el análisis histórico del repositorio durante los últimos seis meses permite establecer una 
+línea base cuantitativa: se han registrado 338 integraciones a la rama principal, lo que 
+representa una frecuencia máxima teórica de aproximadamente 13 integraciones por semana.
+
+El tiempo mediano de entrega de los cambios (\emph{lead time for changes}), 
+medido desde el primer \emph{commit} hasta su fusión en la rama principal, 
+es de aproximadamente 55 minutos, aunque la existencia de ramas de larga duración 
+eleva el promedio general a 2.0 días. Por otro lado, la tasa de fallos 
+(\emph{change failure rate}), estimada mediante la identificación de ramas de 
+corrección, indica que el 21.9\% de las integraciones (74 de 338) requirieron una 
+intervención correctiva posterior. El proceso manual actual, al depender de pasos 
+ejecutados a mano y carecer de entornos de prueba automatizados, propicia que un porcentaje 
+considerable de los cambios llegue a la rama principal requiriendo ajustes posteriores.
 
 El proceso manual, al depender de pasos ejecutados a mano, presenta un riesgo propio de los
 despliegues que agrupan varios cambios: omitir alguna migración o \emph{seeder} de los
@@ -105,6 +112,60 @@ una propuesta de CI/CD orientada a aplicaciones \emph{legacy} universitarias. Su
 demuestra que la transición hacia flujos automatizados con plataformas autoalojadas (\emph{self-hosted}) 
 es viable e imperativa en organizaciones con infraestructura limitada, sin depender de proveedores externos.
 
+La Tabla~\ref{tab:comparativo} resume las características de los trabajos revisados frente a las
+condiciones de este proyecto.
+
+\begin{table}[!htbp]
+\centering
+\footnotesize
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.6cm}*{4}{>{\raggedright\arraybackslash}X}@{}}
+\toprule
+\textbf{Trabajo} & \textbf{CI/CD} & \textbf{\emph{Legacy}} & \textbf{\emph{On-premise}} & \textbf{Sin pruebas automatizadas} \\
+\midrule
+Forsgren et al. \cite{Forsgren2018}
+  & Mide su efecto con las métricas DORA
+  & No es el foco
+  & No distingue entre nube y servidores propios
+  & No, considera las pruebas una capacidad clave \\
+Laukkanen et al. \cite{Laukkanen2017}
+  & Problemas al adoptar la entrega continua
+  & Señala arquitecturas poco modulares como obstáculo
+  & No es el foco
+  & No, las asume y reporta pruebas lentas o inestables \\
+Proulx et al. \cite{Proulx2018}
+  & Problemas y soluciones del despliegue continuo
+  & No es el foco
+  & No es el foco
+  & No; las asume existentes \\
+Kosińska y Zielinski \cite{Kosinska2020}
+  & Entrega continua sobre contenedores
+  & Modernización incremental sin reescribir la lógica
+  & No, orientado a entornos nativos de la nube
+  & No es el foco \\
+Shahin et al. \cite{Shahin2017}
+  & Enfoques, herramientas y desafíos, incluida la evolución de esquemas de BD
+  & No es el foco
+  & No es el foco
+  & No, las asume como compuerta de calidad \\
+Morales Agredo \cite{MoralesAgredo2021}
+  & Propuesta para aplicaciones universitarias
+  & Aplicaciones \emph{legacy} universitarias
+  & Sí, plataformas autoalojadas
+  & Por verificar \\
+\midrule
+\rowcolor{black!10}
+\textbf{Este trabajo}
+  & \emph{Pipeline} en GitLab con entornos de prueba bajo demanda y aprobación manual
+  & Monolito Laravel con MySQL y MongoDB, sin reescritura
+  & Sí, servidores propios con GitLab autoalojado
+  & Sí, compuertas de calidad y validación manual en instancias de prueba \\
+\bottomrule
+\end{tabularx}
+\caption{Características de los trabajos revisados frente a este trabajo.}\label{tab:comparativo}
+\end{table}
+% TODO(tesis): verificar cada celda contra el artículo, sobre todo Laukkanen (legacy), Kosińska (on-premise) y Morales Agredo (pruebas)
+
 Al cruzar los ejes anteriores, emerge con claridad la brecha técnica y operativa que motiva este trabajo. 
 La literatura revisada documenta sólidamente cómo evaluar el desempeño, los riesgos del error humano, 
 la viabilidad de la contenedorización incremental y la modernización de sistemas \emph{legacy}
@@ -143,11 +204,12 @@ Ninguno de estos controles garantiza la ausencia de errores, pero aumentan la pr
 detectarlos antes de llegar a producción. Tercero, deja registro de cada despliegue, algo que hoy 
 no existe y que permite evaluar el proceso con datos.
 
-Esto beneficia al equipo técnico, al reducir su dependencia de procedimientos manuales y favorecer un proceso estandarizado,
-repetible y con trazabilidad. También beneficia a la organización, al disminuir el riesgo de que un error afecte la operación
-de un sistema que sustenta su gestión administrativa. Además, el proyecto deja documentado un caso de entrega continua sobre 
-infraestructura autoalojada en un sistema sin pruebas automatizadas, que podría servir de referencia a equipos con condiciones similares.
-
+Esto beneficia al equipo técnico, al reducir su dependencia de procedimientos manuales y 
+favorecer un proceso estandarizado, repetible y con trazabilidad. También beneficia a la 
+organización, al disminuir el riesgo de que un error afecte la operación de un sistema que sustenta 
+su gestión administrativa. Además, el proyecto deja documentada una \emph{estrategia reproducible de 
+modernización progresiva} para sistemas \emph{legacy} sin pruebas automatizadas y sobre 
+infraestructura autoalojada, sirviendo de referencia metodológica y operativa a equipos con condiciones similares.
 
 \subsection{Objetivo general}
 Diseñar e implementar un proceso de integración y entrega continua para el sistema, basado en 
@@ -165,9 +227,9 @@ Para alcanzar el objetivo general propuesto, se plantean los siguientes objetivo
   % TODO(tesis): definir cuáles son las compuertas de calidad del sistema heredado
   \item Automatizar el despliegue a producción a partir de una rama de liberación (\emph{release}), con aprobación manual, ejecutando en orden las migraciones de ambas bases de datos y verificando al final que la aplicación responde.
   % TODO(tesis): definir cómo se verifica que la aplicación responde y cómo se aplican los cambios de MongoDB en el despliegue
-  \item Evaluar el proceso propuesto frente al proceso manual actual, comparando el número de pasos manuales,
-   el tiempo de despliegue, el tiempo entre la fusión de un cambio y su despliegue, y la proporción de despliegues 
-   que requieren una corrección posterior.
+  \item Evaluar el proceso propuesto frente a la línea base del proceso manual actual, utilizando las 
+  \emph{métricas DORA} adaptadas al contexto del sistema (frecuencia de despliegue, 
+  \emph{lead time for changes} y tasa de fallos), sumado a la reducción de pasos manuales del despliegue.
 \end{itemize}
 
 \subsection{Hipótesis}

@@ -29,6 +29,29 @@ Las características principales del proceso son:
 \label{fig:arquitectura_solucion}
 \end{figure}
 
+\textbf{Métricas de aceptación}
+
+Para determinar el éxito y la viabilidad del producto propuesto tras su implementación, 
+se establecen los siguientes criterios operativos, evaluados frente a la línea base histórica:
+
+\begin{itemize}
+\item \textbf{Reducción de pasos manuales:} El proceso de despliegue a producción debe reducirse a una 
+única aprobación manual (clic) en la interfaz de GitLab, delegando la construcción de imágenes, 
+ejecución de migraciones y verificación al \emph{pipeline} automatizado.
+
+\item \textbf{Tiempo máximo de despliegue:} La ejecución del \emph{pipeline} de liberación a producción 
+deberá completarse de forma predecible y documentada, estandarizando el tiempo que toma colocar 
+el código en el servidor.
+
+\item \textbf{Impacto en el \emph{Lead Time}:} La adopción del proceso automatizado y las compuertas 
+de calidad no deberá afectar negativamente el \emph{lead time} mediano actual de 55 minutos, 
+demostrando que la automatización no es un cuello de botella.
+
+\item \textbf{Porcentaje de despliegues exitosos:} Se busca disminuir la tasa histórica de fallos 
+(estimada actualmente en un máximo del 21.9\%) mediante la detección temprana de defectos en el \emph{pipeline} 
+de revisión y la validación en los entornos de prueba bajo demanda.
+\end{itemize}
+
 \section{Metodología}
 
 [Pasos o fases para alcanzar el objetivo, cada uno con definición y
