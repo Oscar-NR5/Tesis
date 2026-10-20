@@ -1,8 +1,17 @@
 % !TEX root = ../main.tex
 \section*{Introducción}
 
-[Una cuartilla: 1) campo de investigación, 2) lo ya estudiado por otros,
-3) área de oportunidad, 4) objetivo del proyecto, 5) justificación.]
+En la actualidad, la agilidad y confiabilidad en la entrega de software son fundamentales para garantizar la continuidad operativa de las organizaciones. Prácticas modernas como la Integración y Entrega Continuas (CI/CD) han demostrado reducir los riesgos de despliegue y mejorar el desempeño de los equipos técnicos. Sin embargo, aplicar estos principios a sistemas heredados (\emph{legacy}) que operan sobre infraestructura autoalojada y que carecen de pruebas automatizadas representa un desafío arquitectónico y organizacional de alta complejidad.
+
+El presente proyecto se centra en un sistema administrativo y operativo crítico desarrollado en Laravel, cuyo proceso de pase a producción es completamente manual. A pesar de contar con un equipo de desarrollo activo y un repositorio con más de 8,000 \emph{commits}, el despliegue requiere intervención directa por SSH para ejecutar actualizaciones de código y migraciones coordinadas entre dos bases de datos distintas (MySQL y MongoDB). Esta dependencia manual, sumada a la ausencia de entornos de prueba efímeros, genera un alto riesgo de error humano por omisión, lo que se refleja en un \emph{lead time} mediano de 55 minutos y una tasa de fallos post-despliegue del 21.9\%.
+
+Para mitigar estos riesgos, es indispensable transitar hacia un proceso de entrega estandarizado y con trazabilidad. Implementar un \emph{pipeline} de automatización eliminará la dependencia de las ejecuciones manuales en el servidor, mientras que la creación de entornos de prueba bajo demanda permitirá validar los cambios de forma segura antes de integrarlos, protegiendo así las operaciones críticas de la organización. 
+
+Este protocolo de investigación tiene como objetivo general diseñar e implementar un proceso de integración y entrega continua para dicho sistema, basado en contenedores y operado sobre infraestructura autoalojada, que reduzca los pasos manuales y permita la validación preventiva de los cambios. 
+
+Para lograrlo, se propone una estrategia de modernización progresiva. Mediante una metodología ágil iterativa, se empaquetará la aplicación web en contenedores Docker y se configurará un \emph{pipeline} en GitLab CI/CD. Ante la falta de pruebas automatizadas dinámicas, la calidad se asegurará mediante compuertas de análisis estático y seguridad. Asimismo, se automatizará el despliegue de entornos de prueba efímeros con datos inyectados por \emph{seeders}, culminando en un pase a producción seguro, coordinado y protegido por aprobación manual.
+
+El resto del documento está estructurado de la siguiente manera. En primer lugar, se detalla el planteamiento del problema, los antecedentes y los objetivos, seguido del marco teórico que fundamenta los conceptos de CI/CD y métricas DORA. Posteriormente, se presenta a detalle la arquitectura del producto propuesto, la metodología de seis fases a seguir para su desarrollo técnico y el cronograma de actividades. Finalmente, se exponen los resultados esperados tras la culminación del proyecto.
 
 \newpage
 

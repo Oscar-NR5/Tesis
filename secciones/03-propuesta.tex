@@ -93,8 +93,9 @@ en las siguientes seis fases progresivas:
   del contenedor de integración, sentando la infraestructura necesaria para que el equipo comience una
   adopción progresiva de pruebas en futuros desarrollos.
 
-  \item \textbf{Fase 4. Entornos de prueba bajo demanda}: Se provisionarán entornos aislados para la aplicación en la infraestructura
-  autoalojada, gestionados mediante herramientas como SSH y Docker Compose. Desde estos contenedores efímeros se automatizará la ejecución
+  \item \textbf{Fase 4. Entornos de prueba bajo demanda}: Se habilitarán instancias de prueba persistentes en la infraestructura
+  autoalojada, gestionadas mediante herramientas como SSH y Docker Compose, en las que se desplegará una rama a la vez.
+  Desde el contenedor de la aplicación desplegada se automatizará la ejecución
   segura de migraciones y \emph{seeders} hacia las bases de datos correspondientes al entorno
   de pruebas, permitiendo validaciones manuales antes de la integración.
 
@@ -119,12 +120,59 @@ en las siguientes seis fases progresivas:
 \caption{Flujo metodológico del proceso CI/CD propuesto.}
 \label{fig:metodologia_flujo}
 \end{figure}
+\clearpage % saca la figura aquí, antes del cronograma
 
 
 \section{Programa de actividades}
 
-[Cronograma de actividades por periodo.]
+El desarrollo de este proyecto está planificado para ejecutarse en un periodo de seis meses. Las actividades se han estructurado tomando como base la metodología iterativa propuesta, asignando tiempos específicos para el desarrollo técnico de las seis fases, así como periodos dedicados a la redacción del informe final, la revisión por parte de los asesores y un margen contemplado para imponderables o imprevistos técnicos inherentes a la intervención de sistemas \emph{legacy}.
+
+A continuación, en la Tabla~\ref{tab:cronograma}, se presenta el cronograma mediante un diagrama de Gantt que detalla la distribución de la carga de trabajo mensual.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.5} % Da más altura a las filas para que se vea limpio
+\footnotesize
+\begin{tabular}{|p{6cm}|c|c|c|c|c|c|}
+\hline
+\rowcolor{gray!20} 
+\textbf{Actividad / Fase} & \textbf{Mes 1} & \textbf{Mes 2} & \textbf{Mes 3} & \textbf{Mes 4} & \textbf{Mes 5} & \textbf{Mes 6} \\ \hline
+\textbf{1. Fase 1:} Diagnóstico y extracción de métricas base en GitLab & \cellcolor{gray!60} & & & & & \\ \hline
+\textbf{2. Fase 2:} Contenedorización de la aplicación y estrategia de imágenes & \cellcolor{gray!60} & \cellcolor{gray!60} & & & & \\ \hline
+\textbf{3. Fase 3:} Configuración del Pipeline CI y compuertas de calidad & & \cellcolor{gray!60} & \cellcolor{gray!60} & & & \\ \hline
+\textbf{4. Fase 4:} Despliegue de entornos de prueba bajo demanda y \emph{seeders} & & & \cellcolor{gray!60} & \cellcolor{gray!60} & & \\ \hline
+\textbf{5. Fase 5:} Automatización del Pipeline CD (Entrega a producción) & & & & \cellcolor{gray!60} & \cellcolor{gray!60} & \\ \hline
+\textbf{6. Fase 6:} Evaluación de resultados y comparación de métricas DORA & & & & & \cellcolor{gray!60} & \\ \hline
+\textbf{7.} Redacción de capítulos del informe final de titulación & & \cellcolor{gray!60} & \cellcolor{gray!60} & \cellcolor{gray!60} & \cellcolor{gray!60} & \cellcolor{gray!60} \\ \hline
+\textbf{8.} Revisiones con asesor, correcciones e imponderables & & & & & \cellcolor{gray!60} & \cellcolor{gray!60} \\ \hline
+\end{tabular}
+\caption{Cronograma de actividades (Diagrama de Gantt).}
+\label{tab:cronograma}
+\end{table}
+
+Como se observa en el cronograma, la redacción del documento no se posterga hasta el final del proyecto, sino que se ejecuta de forma paralela al desarrollo técnico a partir del segundo mes, garantizando que los hallazgos y decisiones de infraestructura se documenten con inmediatez.
 
 \section{Resultados esperados}
 
-[Qué se espera obtener al terminar.]
+Al finalizar el desarrollo e implementación de este proyecto, se espera obtener los siguientes resultados, divididos en entregables técnicos, impacto operativo y valor estratégico para la organización:
+
+\textbf{1. Entregables técnicos funcionales}
+\begin{itemize}
+    \item Un \emph{pipeline} de integración y entrega continuas (CI/CD) operativo en la plataforma GitLab autoalojada de la organización.
+    \item La aplicación web \emph{legacy} empaquetada en imágenes de contenedor (Docker) versionadas y construidas por capas, estandarizando su ejecución sin alterar la lógica de negocio actual.
+    \item El despliegue bajo demanda de una rama en instancias de prueba persistentes, con la opción de aplicar migraciones y cargar datos de prueba (\emph{seeders}) en MySQL y MongoDB, para validar de forma manual los cambios funcionales antes de su fusión.
+\end{itemize}
+
+\textbf{2. Impacto operativo y evaluación empírica}
+\begin{itemize}
+    \item La sustitución de los pasos manuales del despliegue por SSH por un flujo automatizado y trazable, en el que la intervención humana se reduce a una aprobación manual (un clic) desde la interfaz de GitLab.
+    \item La reducción del riesgo de omitir migraciones al agrupar cambios, ya que el \emph{pipeline} aplicará las migraciones de MySQL y MongoDB en un orden definido y verificará el resultado en cada liberación. Al no compartir transacciones ambos motores, se asegura el orden y la verificación, no la atomicidad.
+    \item Un informe de evaluación que contraste el desempeño del nuevo flujo contra la línea base histórica del proceso manual (Apéndice~\ref{apendice:linea_base}), utilizando las métricas DORA adaptadas (frecuencia de despliegue, \emph{lead time} y tasa de fallos) y la reducción de pasos manuales. Por tratarse de un solo sistema y de una línea base reconstruida a partir de registros parciales, los resultados serán específicos de este contexto.
+\end{itemize}
+
+\textbf{3. Valor estratégico e infraestructura futura}
+\begin{itemize}
+    \item Compuertas de calidad automatizadas, basadas en análisis estático del código y escaneo de vulnerabilidades de las imágenes, que detengan la integración de los cambios que no cumplan los criterios definidos. Estas compuertas no sustituyen a una \emph{suite} de pruebas, pero aumentan la probabilidad de detectar defectos antes de llegar a producción.
+    \item La integración e inicialización de un \emph{framework} de pruebas dentro del \emph{pipeline}, dejando el entorno preparado para que el equipo inicie una adopción progresiva de pruebas automatizadas.
+    \item La documentación del proceso como referencia para la organización y para equipos en condiciones similares, mostrando una estrategia de modernización progresiva de la entrega de un sistema \emph{legacy} sobre infraestructura propia, sin reescribir su lógica de negocio.
+\end{itemize}

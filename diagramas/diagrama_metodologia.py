@@ -56,7 +56,7 @@ with Diagram("", filename="metodologia_cicd", show=False, direction="TB", outfor
 
     with Cluster("Fase 4: Entornos de Prueba", graph_attr=cluster_attr):
         test_server = Server("Servidor de\nPrueba")
-        test_app = Docker("Contenedor\nEfímero")
+        test_app = Docker("Contenedor\nde Prueba")
         test_db_scripts = Php("Migraciones y\nSeeders")
 
     with Cluster("Fase 5: Entrega Continua", graph_attr=cluster_attr):

@@ -1,8 +1,118 @@
 % !TEX root = ../main.tex
 \section{Marco teórico}
+Esta sección se encarga de definir y explicar los conceptos y prácticas de ingeniería de 
+software a los que se hará referencia a lo largo de este documento. El objetivo es 
+proporcionar al lector los conocimientos teóricos necesarios para comprender el producto y 
+la metodología propuesta. Dado que este proyecto aborda la modernización del proceso de 
+liberación de un sistema \emph{legacy}, se explicarán a detalle términos como la integración y 
+entrega continuas (CI/CD), las métricas de desempeño del desarrollo de software (DORA), la 
+contenedorización de aplicaciones, la función de las compuertas de calidad y los marcos de trabajo ágiles.
 
-[Teoría, conceptos y trabajo relacionado que fundamentan el proyecto.
-Una subsección por concepto, cada una introducida con un párrafo.]
+\subsection{Integración y Entrega Continuas (CI/CD)}
+En el desarrollo de software moderno, la velocidad y la confiabilidad al momento de liberar nuevas 
+características a los usuarios son fundamentales. La Integración Continua (CI, por sus siglas en inglés) 
+es una práctica de desarrollo en la cual los miembros de un equipo integran su código fuente con 
+frecuencia en un repositorio central, donde cada integración es verificada automáticamente 
+por un sistema que construye el código y lo somete a pruebas \cite{Laukkanen2017}. 
+El objetivo principal de la CI es detectar errores de integración lo más rápido posible, 
+brindando retroalimentación inmediata a los desarrolladores antes de que los defectos lleguen 
+a entornos críticos. 
 
-\subsection{Subtema}
-\subsubsection{Subsubtema}
+Por su parte, la Entrega Continua (CD) es la evolución natural de la CI. Consiste en asegurar que el 
+software pueda ser liberado de forma confiable en cualquier momento, manteniendo el código en un 
+estado siempre desplegable. Es importante distinguir entre Entrega Continua y Despliegue Continuo: 
+mientras que el Despliegue Continuo automatiza la liberación a producción sin intervención humana, 
+la Entrega Continua requiere una aprobación manual final antes del pase a producción, lo que la hace 
+idónea para sistemas críticos \cite{Proulx2018}.
+
+Al intentar aplicar estas prácticas a sistemas \emph{legacy} (sistemas heredados), los equipos se 
+enfrentan a arquitecturas poco modulares y acoplamientos fuertes de bases de datos que dificultan la 
+adopción de flujos CI/CD automatizados \cite{Laukkanen2017, Shahin2017}. En estos contextos 
+organizacionales, la literatura señala que la implementación de un \emph{pipeline} de CI/CD actúa 
+como un mecanismo restrictivo y documentado, reduciendo drásticamente la posibilidad de errores 
+humanos por omisión que suelen ocurrir durante los despliegues manuales \cite{Forsgren2018}.
+
+\subsection{Métricas DORA para el Desempeño del Desarrollo}
+Al intervenir un proceso de entrega de software, es indispensable contar con un mecanismo validado para 
+medir el desempeño antes y después de la automatización. A través de investigaciones empíricas en la 
+industria, se ha demostrado que es posible medir la efectividad del ciclo de vida del software sin 
+sacrificar la estabilidad por la velocidad. Forsgren, Humble y Kim \cite{Forsgren2018} identificaron 
+cuatro métricas clave, comúnmente denominadas métricas DORA (por el grupo de investigación 
+\emph{DevOps Research and Assessment}), que permiten evaluar el rendimiento de la entrega de software:
+
+\begin{itemize}
+  \item \textbf{Frecuencia de despliegue (\emph{Deployment frequency}):} Mide qué tan a menudo la
+  organización despliega código a producción. Una mayor frecuencia indica integraciones más pequeñas
+  y de menor riesgo.
+
+  \item \textbf{Tiempo de entrega de los cambios (\emph{Lead time for changes}):} Mide el tiempo que
+  transcurre desde que un código es confirmado (\emph{commit}) en el repositorio hasta que se ejecuta
+  exitosamente en producción.
+
+  \item \textbf{Tasa de fallos por cambio (\emph{Change failure rate}):} Representa el porcentaje de
+  despliegues a producción que provocan una falla en el servicio y requieren una intervención inmediata
+  (como un \emph{rollback} o un parche de emergencia).
+
+  \item \textbf{Tiempo de restauración del servicio (\emph{Time to restore service}):} Mide el tiempo
+  que tarda la organización en recuperarse de una falla en producción.
+\end{itemize}
+
+El uso de estas métricas proporciona una definición operacional y un vocabulario científico 
+validado para cuantificar la mejora de los equipos técnicos frente a sus líneas base históricas, 
+demostrando el valor empírico de adoptar prácticas como CI/CD \cite{Forsgren2018}.
+
+\subsection{Contenedorización e Infraestructura Inmutable}
+El despliegue de aplicaciones heredadas (\emph{legacy}) en entornos de servidores propios 
+(\emph{on-premise}) suele enfrentarse al problema de la inconsistencia de los entornos. 
+Lo que funciona en la máquina de desarrollo a menudo falla en producción debido a diferencias 
+sutiles en las versiones de bibliotecas, sistemas operativos o variables de entorno. Para mitigar 
+este problema, la industria ha adoptado la contenedorización como un estándar de facto.
+
+La contenedorización es una tecnología de virtualización a nivel del sistema operativo que permite 
+empaquetar una aplicación y todas sus dependencias (bibliotecas, archivos binarios y configuración) 
+en un único artefacto ejecutable denominado "imagen" \cite{Taibi2022}. A diferencia de las máquinas 
+virtuales tradicionales, los contenedores comparten el núcleo del sistema operativo del servidor 
+anfitrión, lo que los hace extremadamente ligeros, con tiempos de arranque en el orden de los milisegundos.
+
+Al emplear contenedores, se habilita el patrón de diseño arquitectónico conocido como 
+"infraestructura inmutable". Este principio dicta que, una vez que una imagen de contenedor es 
+construida por el \emph{pipeline} de integración continua, esta no se modifica ni se parchea jamás. 
+Si se requiere una actualización o un cambio en el código, se debe construir una imagen completamente 
+nueva y sustituir a la anterior \cite{Taibi2022}. En el contexto de sistemas \emph{legacy}, este 
+enfoque es invaluable: permite encapsular el entorno de ejecución (\emph{runtime}) sin necesidad 
+de reescribir la lógica del negocio, garantizando que el código probado en un servidor temporal 
+bajo demanda se ejecutará de forma idéntica en producción.
+
+\subsection{Compuertas de Calidad (\emph{Quality Gates}) en el Desarrollo}
+La automatización del despliegue (CD) introduce la necesidad crítica de asegurar que el 
+código integrado al repositorio cumpla con los estándares de la organización antes de llegar 
+al servidor. Este proceso de validación automática se gestiona a través de las compuertas de calidad 
+o \emph{quality gates}.
+
+Una compuerta de calidad es un hito dentro del \emph{pipeline} que detiene la integración de manera 
+automatizada si el código no cumple con criterios predefinidos \cite{Rajesh2023}. Históricamente, 
+la compuerta de calidad principal ha sido la ejecución de \emph{suites} de pruebas dinámicas 
+(pruebas unitarias o de integración). Sin embargo, en sistemas donde la creación retrospectiva de 
+pruebas es prohibitiva por costos de tiempo o acoplamiento de bases de datos, las organizaciones 
+adoptan el enfoque \emph{DevSecOps} mediante análisis estáticos y de seguridad \cite{Rajesh2023}.
+
+Las compuertas de análisis estático (SAST - \emph{Static Application Security Testing}) evalúan el código 
+fuente sin ejecutarlo, detectando problemas de sintaxis, violaciones de arquitectura, o estándares de estilo 
+inconsistentes. Adicionalmente, el escaneo de vulnerabilidades sobre las imágenes de contenedores permite detectar 
+dependencias obsoletas o fallos de seguridad documentados (CVEs) antes de autorizar el despliegue. Según la 
+literatura reciente, transferir la carga de revisión desde el desarrollador hacia estas compuertas 
+automatizadas reduce el error humano y garantiza un estándar de calidad mínimo indispensable en la integración de ramas \cite{Rajesh2023}.
+
+\subsection{Metodologías Ágiles aplicadas a la Modernización}
+La modernización de infraestructura y la implementación de ciclos automatizados en sistemas ya existentes 
+implican altos niveles de incertidumbre técnica. A diferencia del desarrollo de un sistema desde cero, 
+la intervención de un sistema \emph{legacy} suele revelar dependencias ocultas, deuda técnica y 
+requerimientos operativos no documentados a medida que avanza el trabajo \cite{Vargas2021}.
+
+Por esta razón, abordar un proyecto de automatización \emph{DevOps} mediante metodologías tradicionales 
+(como el modelo en cascada o ciclo de vida lineal) eleva el riesgo de fracaso por descubrimiento 
+tardío de problemas. Las metodologías ágiles, y en particular marcos de trabajo iterativos como 
+Scrum, proveen una estructura organizativa que fomenta la adaptación continua \cite{Vargas2021}. 
+Al dividir el trabajo técnico en iteraciones cortas (\emph{sprints}), el equipo puede entregar 
+incrementos funcionales (por ejemplo, automatizar primero la contenedorización y luego las bases de datos), 
+medir el impacto, y ajustar el curso de acción ante los retos técnicos que presente la infraestructura \emph{on-premise}.
