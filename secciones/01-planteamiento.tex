@@ -3,7 +3,7 @@
 
 En la actualidad, la agilidad y confiabilidad en la entrega de software son fundamentales para garantizar la continuidad operativa de las organizaciones. Prácticas modernas como la Integración y Entrega Continuas (CI/CD) han demostrado reducir los riesgos de despliegue y mejorar el desempeño de los equipos técnicos. Sin embargo, aplicar estos principios a sistemas heredados (\emph{legacy}) que operan sobre infraestructura autoalojada y que carecen de pruebas automatizadas representa un desafío arquitectónico y organizacional de alta complejidad.
 
-El presente proyecto se centra en un sistema administrativo y operativo crítico desarrollado en Laravel, cuyo proceso de pase a producción es completamente manual. A pesar de contar con un equipo de desarrollo activo y un repositorio con más de 8,000 \emph{commits}, el despliegue requiere intervención directa por SSH para ejecutar actualizaciones de código y migraciones coordinadas entre dos bases de datos distintas (MySQL y MongoDB). Esta dependencia manual, sumada a la ausencia de entornos de prueba efímeros, genera un alto riesgo de error humano por omisión, lo que se refleja en un \emph{lead time} mediano de 55 minutos y una tasa de fallos post-despliegue del 21.9\%.
+El presente proyecto se centra en un sistema administrativo y operativo crítico desarrollado en Laravel, cuyo proceso de pase a producción es completamente manual. A pesar de contar con un equipo de desarrollo activo y un repositorio con más de 8,000 \emph{commits}, el despliegue requiere una intervención directa por SSH para ejecutar actualizaciones de código y migraciones coordinadas entre dos bases de datos distintas (MySQL y MongoDB). Esta dependencia manual, sumada a la ausencia de entornos de prueba efímeros, genera un alto riesgo de error humano por omisión, lo que se refleja en un \emph{lead time} mediano de 55 minutos y una tasa de fallos posterior al despliegue del 21.9\%.
 
 Para mitigar estos riesgos, es indispensable transitar hacia un proceso de entrega estandarizado y con trazabilidad. Implementar un \emph{pipeline} de automatización eliminará la dependencia de las ejecuciones manuales en el servidor, mientras que la creación de entornos de prueba bajo demanda permitirá validar los cambios de forma segura antes de integrarlos, protegiendo así las operaciones críticas de la organización. 
 
@@ -11,16 +11,16 @@ Este protocolo de investigación tiene como objetivo general diseñar e implemen
 
 Para lograrlo, se propone una estrategia de modernización progresiva. Mediante una metodología ágil iterativa, se empaquetará la aplicación web en contenedores Docker y se configurará un \emph{pipeline} en GitLab CI/CD. Ante la falta de pruebas automatizadas dinámicas, la calidad se asegurará mediante compuertas de análisis estático y seguridad. Asimismo, se automatizará el despliegue de entornos de prueba efímeros con datos inyectados por \emph{seeders}, culminando en un pase a producción seguro, coordinado y protegido por aprobación manual.
 
-El resto del documento está estructurado de la siguiente manera. En primer lugar, se detalla el planteamiento del problema, los antecedentes y los objetivos, seguido del marco teórico que fundamenta los conceptos de CI/CD y métricas DORA. Posteriormente, se presenta a detalle la arquitectura del producto propuesto, la metodología de seis fases a seguir para su desarrollo técnico y el cronograma de actividades. Finalmente, se exponen los resultados esperados tras la culminación del proyecto.
+El resto del documento está estructurado de la siguiente manera. En primer lugar, se detallan el planteamiento del problema, los antecedentes y los objetivos, seguidos del marco teórico que fundamenta los conceptos de CI/CD y las métricas DORA. Posteriormente, se presentan en detalle la arquitectura del producto propuesto, la metodología de seis fases que se seguirá para su desarrollo técnico y el cronograma de actividades. Finalmente, se exponen los resultados esperados tras la culminación del proyecto.
 
 \newpage
 
 \section{Planteamiento del problema}
 Una organización mantiene un sistema que sostiene gran parte de su
-operación administrativa y operativa, integrando sus diferentes áreas. La información
-se almacena en dos motores de base de datos, uno relacional y otro documental. El segundo, al no ser relacional,
+operación administrativa y operativa, e integra sus diferentes áreas. La información
+se almacena en dos motores de bases de datos: uno relacional y otro documental. El segundo, al no ser relacional,
 no implementa llaves foráneas como restricción del propio motor y, al tratarse de motores distintos, tampoco
-hay un mecanismo de integridad referencial que los conecte entre sí, por lo que la relación entre los datos
+existe un mecanismo de integridad referencial que los conecte entre sí, por lo que la relación entre los datos
 depende de una convención y no de una restricción verificada por el sistema.
 
 El sistema, desarrollado con Laravel 8 y PHP 8.3 y mantenido por cinco personas, nació hace dos años orientado
@@ -31,7 +31,7 @@ convertirse en el sistema principal de la organización, sin que su arquitectura
 que su alcance. Hoy sostiene operaciones críticas, mientras que su
 proceso de despliegue continúa siendo completamente manual.
 
-Cualquiera de los cinco integrantes del equipo puede realizar un despliegue, y para hacerlo es necesario
+Cualquiera de los cinco integrantes del equipo puede realizar un despliegue. Para hacerlo, es necesario
 acceder mediante SSH al servidor donde se aloja la
 aplicación, actualizar el código mediante operaciones de Git sobre el repositorio y ejecutar
 manualmente las migraciones pendientes, sin mecanismos
@@ -39,7 +39,7 @@ de verificación automática. El historial del repositorio refleja un volumen co
 cambios: desde su inicio se han fusionado 563 solicitudes de cambio en la rama principal, sobre
 aproximadamente 8,000 \emph{commits}. Estas integraciones pueden incluir cambios que deben aplicarse
 sobre los motores de base de datos: modificación de esquemas en el motor relacional y, en el
-motor no relacional, que no tiene esquema fijo, operaciones equivalentes como la creación de
+motor no relacional, que no tiene un esquema fijo, operaciones equivalentes, como la creación de
 índices; en ambos casos deben identificarse y ejecutarse manualmente y en el orden correspondiente.
 
 El ritmo de integración de cambios a la rama principal no equivale a la frecuencia real de
@@ -57,11 +57,11 @@ eleva el promedio general a 2,0 días. Por otro lado, la tasa de fallos
 corrección, indica que el 21,9\% de las integraciones (74 de 338) requirieron una
 intervención correctiva posterior. El proceso manual actual, al depender de pasos
 ejecutados a mano y carecer de entornos de prueba automatizados, propicia que un porcentaje
-considerable de los cambios llegue a la rama principal requiriendo ajustes posteriores.
+considerable de los cambios llegue a la rama principal y requiera ajustes posteriores.
 
 El proceso manual, al depender de pasos ejecutados a mano, presenta un riesgo propio de los
-despliegues que agrupan varios cambios: omitir alguna migración o \emph{seeder} de los
-cambios acumulados. Hasta ahora no ha ocurrido, y los pocos olvidos
+despliegues que agrupan varios cambios: omitir alguna migración o \emph{seeder} correspondiente a los
+cambios acumulados. Hasta ahora no se ha documentado la omisión de una migración; los pocos olvidos
 de ejecución que se han presentado se corrigieron con rapidez y sin consecuencias relevantes.
 
 \subsection{Antecedentes}
@@ -76,13 +76,13 @@ que consiguen ambas de forma simultánea. Para este trabajo, estas métricas pro
 definición operacional ya validados, y ofrecen un marco científico para cuantificar la mejora respecto a la línea base
 (\emph{baseline}) de los despliegues manuales.
 
-Sobre la adopción de la integración y entrega continuas (CI/CD), existe un consenso sólido respecto a las principales barreras
+En cuanto a la adopción de la integración y entrega continuas (CI/CD), existe un consenso sólido respecto a las principales barreras
 de implementación. Revisiones sistemáticas de literatura empírica desarrolladas por Laukkanen et al. \cite{Laukkanen2017} y
 Proulx et al. \cite{Proulx2018} coinciden en que los factores humanos y organizacionales superan holgadamente a los
 problemas técnicos en la generación de fallas durante la liberación de código. Estos hallazgos concuerdan con lo que
 se observa en el sistema de estudio, cuyo principal riesgo de despliegue (omitir una migración cuando se agrupan
 varios cambios) depende de que una persona ejecute cada paso a mano.
-La literatura señala que la automatización mediante un \emph{pipeline} establece un mecanismo restrictivo
+La literatura señala que la automatización mediante un \emph{pipeline} establece un mecanismo controlado
 de construcción que puede reducir la posibilidad de errores humanos por omisión al hacer explícitos y
 verificables los pasos del despliegue.
 
@@ -192,10 +192,10 @@ producción ni cuántos despliegues requieren una corrección.
 \textbf{Consecuencias.} Cada despliegue depende de que quien lo realice recuerde y ejecute en orden todos los
 pasos, una tarea frecuente que se reparte entre distintas personas. Hasta ahora esto ha causado pocos problemas,
 pero cuando se agrupan varios cambios basta un descuido para omitir una migración. Además, la revisión entre
-pares es la única barrera antes de producción: lo que no detecte llega directamente a un sistema del que
+pares es la única barrera antes de producción: lo que la revisión no detecte llega directamente a un sistema del que
 dependen operaciones críticas, y sin registros no hay forma de saber con qué frecuencia ocurre.
 
-\textbf{Problema central.} Dificultad para desplegar y probar los cambios del sistema de forma
+\textbf{Problema central.} Existe dificultad para desplegar y probar los cambios del sistema de forma
 confiable y repetible: el despliegue depende de pasos manuales que realizan distintas personas, los
 cambios no pueden probarse en condiciones parecidas a las de producción antes de llegar a ella y los datos están
 repartidos en dos bases de datos que deben actualizarse de manera coordinada.
@@ -241,8 +241,8 @@ Para alcanzar el objetivo general propuesto, se plantean los siguientes objetivo
   bases de datos (MySQL y MongoDB), con opciones para aplicar migraciones y cargar datos de prueba
   generados mediante \emph{seeders}.
 
-  \item Configurar en GitLab, sobre infraestructura autoalojada, un \emph{pipeline} que en cada
-  cambio que se sube al repositorio construya la imagen y lo verifique mediante compuertas de calidad,
+  \item Configurar en GitLab, sobre infraestructura autoalojada, un \emph{pipeline} que, con cada
+  cambio que se suba al repositorio, construya la imagen y la verifique mediante compuertas de calidad,
   ante la ausencia de una \emph{suite} de pruebas automatizadas.
 
   \item Automatizar el despliegue a producción a partir de una rama de liberación (\emph{release}), con aprobación manual,
@@ -250,7 +250,7 @@ Para alcanzar el objetivo general propuesto, se plantean los siguientes objetivo
 
   \item Evaluar el proceso propuesto frente a la línea base del proceso manual actual, utilizando las
   \emph{métricas DORA} adaptadas al contexto del sistema (frecuencia de despliegue,
-  \emph{lead time for changes} y tasa de fallos), sumado a la reducción de pasos manuales del despliegue.
+  \emph{lead time for changes} y tasa de fallos), además de la reducción de pasos manuales del despliegue.
 \end{itemize}
 
 \subsection{Hipótesis}

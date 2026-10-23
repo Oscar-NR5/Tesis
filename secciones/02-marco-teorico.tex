@@ -8,6 +8,18 @@ liberación de un sistema \emph{legacy}, se explicarán a detalle términos como
 entrega continuas (CI/CD), las métricas de desempeño del desarrollo de software (DORA), la 
 contenedorización de aplicaciones, la función de las compuertas de calidad y los marcos de trabajo ágiles.
 
+\subsection{Deuda Tecnica y Matenimiento de Sistemas Legado}
+Para mantener la operatividad de un sistema es requisito la evolucion continua del software. Sin embargo,
+los sistemas que han operado durante largos periodos, llamados sistemas \emph{legacy}, presentan
+ciertos desafios arquitectonicos importantes. Vargas et al. \cite{Vargas2021} mencionan que el matenimiento de
+estas aplicaciones suele caracterizarse por una alta friccion debido al acoplamiento fuerte y la obsolencia
+tecnologica.
+
+La deuda tecnica en sistemas monoliticos se agreva por la depedencia de procesos manuales. Como docuemnta Morales Agredo
+\cite{MoralesAgredo2021} en su analisis de aplicaciones \emph{legacy}, la falta de automatizacion en la
+construccion y validacion del codigo incrementa exponencialmente el riesgo de error humano. Esta problematica
+estructural obliga a los equipos de ingenieria a tratar los despliegues como operaciones de alto riesgo.
+
 \subsection{Integración y Entrega Continuas (CI/CD)}
 En el desarrollo de software moderno, la velocidad y la confiabilidad al momento de liberar nuevas 
 características a los usuarios son fundamentales. La Integración Continua (CI, por sus siglas en inglés) 
@@ -83,25 +95,48 @@ enfoque es invaluable: permite encapsular el entorno de ejecución (\emph{runtim
 de reescribir la lógica del negocio, garantizando que el código probado en un servidor temporal 
 bajo demanda se ejecutará de forma idéntica en producción.
 
+\subsection{Infraestructura Declarativa y Entornos Efimeros}
+Si bien empaquetar la aplicacion resulve el problema de portabilidad, no soluciona inherentemente
+la orquestacion de la pruebas previas a produccion. Tradicionalmente se dependia, de entornos estaticos
+los cuales se degradan con el tiempo \cite{Proulx2018}. Como alternativa, la gestion de Infraestructura como Codigo
+\emph{(IaC)} permite la creacion de entornos \emph{efimeros}. Con este modelo, el CI/CD aprovisiona un
+entorno completo y aislado exclusivamente para validar un \emph{Pull Request} destruyendo los recursos 
+al finalizar. Este enfoque asegura un estado limpio en cada ejecucion, erradicando la contención de recursos.
+
 \subsection{Compuertas de Calidad (\emph{Quality Gates}) en el Desarrollo}
-La automatización del despliegue (CD) introduce la necesidad crítica de asegurar que el 
-código integrado al repositorio cumpla con los estándares de la organización antes de llegar 
-al servidor. Este proceso de validación automática se gestiona a través de las compuertas de calidad 
-o \emph{quality gates}.
+Este proceso de validacion se gestiona a traves de compuestas de calidad. Un compuerta
+(\emph{quality gate}) es un hito que detiene la integracion automatizada si el codigo no cumple
+con criterios con criterios predefinidos \cite{Rajesh2023}. En sistemas \emph{legacy}, donde
+las pruebas unitarias tienden a ser prohibitivas el escaneo de vulnerabilidad sobre las imagenes de contenedores
+y el analisis estatico (SAST) permiten detectar dependencias obsol;etas antes de autorizar el 
+despliegue.
 
-Una compuerta de calidad es un hito dentro del \emph{pipeline} que detiene la integración de manera 
-automatizada si el código no cumple con criterios predefinidos \cite{Rajesh2023}. Históricamente, 
-la compuerta de calidad principal ha sido la ejecución de \emph{suites} de pruebas dinámicas 
-(pruebas unitarias o de integración). Sin embargo, en sistemas donde la creación retrospectiva de 
-pruebas es prohibitiva por costos de tiempo o acoplamiento de bases de datos, las organizaciones 
-adoptan el enfoque \emph{DevSecOps} mediante análisis estáticos y de seguridad \cite{Rajesh2023}.
+\subsection{Arquitecturas CI/CD en Infraestrctura Propia}
+La literatura sobre entornos efimeros asume frecuentemente la diponibilidad de recursos ilimitados en la
+nube \cite{Kosinska2020}. Sin embargo, la implementacion en infraestructura propia presenta restricciones particulares.
+El diseño debe gestionar cuidadosamente las limitaciones en el hardware, para evitar la saturacion de 
+los servidores internos y asegurar que los agentes de ejecucion (\emph{runners}) operen sin comprometer
+la integridad de la red interna \cite{Rajesh2023}.
 
-Las compuertas de análisis estático (SAST - \emph{Static Application Security Testing}) evalúan el código 
-fuente sin ejecutarlo, detectando problemas de sintaxis, violaciones de arquitectura, o estándares de estilo 
-inconsistentes. Adicionalmente, el escaneo de vulnerabilidades sobre las imágenes de contenedores permite detectar 
-dependencias obsoletas o fallos de seguridad documentados (CVEs) antes de autorizar el despliegue. Según la 
-literatura reciente, transferir la carga de revisión desde el desarrollador hacia estas compuertas 
-automatizadas reduce el error humano y garantiza un estándar de calidad mínimo indispensable en la integración de ramas \cite{Rajesh2023}.
+\subsection{Gestion del Estado y Bases de Dastos No Relaciones en Pipelines}
+El mayor reto de orquestar entornos efímeros ocurre cuando el sistema heredado depende de 
+arquitecturas de persistencia de datos complejas o fragmentadas, como la convivencia de 
+bases de datos relacionales y no relacionales. 
+
+A diferencia del código fuente, que es inherentemente estático, las bases de datos poseen "estado". 
+Si las pruebas automatizadas se ejecutan sobre un esquema de datos persistente, la acumulación de datos 
+residuales terminará por corromper las pruebas futuras, generando falsos positivos o fallas de estado. 
+Thompson et al. \cite{Thompson2021} señalan que las bases de datos NoSQL imponen un desafío adicional 
+en los pipelines CI/CD, ya que carecen de mecanismos tradicionales de migración de esquemas estrictos.
+
+Para resolver esto en entornos automatizados, la literatura recomienda disociar la infraestructura del 
+estado de los datos \cite{Martin2022}. Esto se logra implementando operaciones de destrucción y recreación 
+del estado (\emph{wipe} y \emph{seed}) dentro de contenedores de ejecución efímera previos al despliegue. 
+Mediante este mecanismo, aunque el servidor anfitrión sea estático, el pipeline garantiza que la base de 
+datos (tanto relacional como NoSQL) se vacíe, se migre a su versión más reciente y se pueble con datos 
+controlados de forma idempotente. Así, se simula un entorno completamente nuevo y aislado para cada 
+iteración de pruebas, asegurando la confiabilidad del ciclo de integración continua sin comprometer 
+la infraestructura física. 
 
 \subsection{Metodologías Ágiles aplicadas a la Modernización}
 La modernización de infraestructura y la implementación de ciclos automatizados en sistemas ya existentes 
